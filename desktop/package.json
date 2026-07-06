@@ -1,7 +1,7 @@
 {
   "name": "shaula-desktop",
   "productName": "Shaula",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Shaula — your free, house-nothing AI office. Runs local; nothing leaves your machine.",
   "private": true,
   "license": "MIT",
@@ -30,6 +30,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "model-util.js",
       "firstrun.html"
     ],
     "extraResources": [
