@@ -150,12 +150,35 @@ function startCockpit() {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function waitForCockpit(tries = 40) {
+// First launch of a downloaded build is slow BY THE OS's DESIGN: Gatekeeper
+// deep-scans the bundled Python (an 18 MB Mach-O) the first time it executes,
+// which can take tens of seconds at 0% CPU. v0.1.1 waited 10s, timed out, and
+// showed an error on exactly the launch that matters most — the first one.
+// Budget two minutes; every later launch is fast (the scan verdict is cached).
+async function waitForCockpit(tries = 480) {
   for (let i = 0; i < tries; i++) {
     if (await ping('http://127.0.0.1:' + COCKPIT_PORT + '/')) return true;
     await sleep(250);
   }
   return false;
+}
+
+// Shown instantly while the cockpit boots, so first launch is a friendly
+// "setting up" moment instead of a blank screen followed by an error.
+// Inline data URL on purpose: no extra packaged file to forget (see v0.1.0).
+function warmingURL() {
+  const html = `<!doctype html><meta charset="utf-8"><title>Shaula</title>
+  <body style="margin:0;display:grid;place-items:center;height:100vh;background:#0e0f1a;color:#e8ecf4;font:16px/1.6 -apple-system,sans-serif">
+  <div style="text-align:center;max-width:420px;padding:24px">
+    <div style="font-size:2.4rem;color:#e8c469">✶</div>
+    <h1 style="font-size:1.3rem;margin:12px 0 8px">Setting up your office…</h1>
+    <p style="color:#9aa7bd;margin:0">The very first open can take a minute while
+    macOS checks the app. This only happens once.</p>
+    <div style="margin-top:22px;height:3px;background:#223047;border-radius:3px;overflow:hidden">
+      <div style="height:100%;width:38%;background:#e8c469;border-radius:3px;animation:s 1.4s ease-in-out infinite alternate"></div>
+    </div><style>@keyframes s{from{margin-left:0}to{margin-left:62%}}</style>
+  </div>`;
+  return 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
 }
 
 // Stop the cockpit and wait for the port to actually free, so a restart on a new
@@ -195,11 +218,15 @@ function onboardingURL() { return 'file://' + path.join(__dirname, 'firstrun.htm
 async function boot() {
   if (!(await ollamaReady())) { showWindow(onboardingURL()); return; }
   if (!(await modelReady())) { showWindow(onboardingURL()); return; }
+  showWindow(warmingURL());   // instant feedback — never a blank first launch
   startCockpit();
   if (await waitForCockpit()) {
     showWindow('http://127.0.0.1:' + COCKPIT_PORT + '/');
   } else {
-    dialog.showErrorBox('Shaula', 'The local office did not start. Is Python available on this machine?');
+    dialog.showErrorBox('Shaula',
+      'The office is taking unusually long to start. Quit Shaula and open it ' +
+      'again — the first launch sometimes needs a second try while macOS ' +
+      'finishes checking the app.');
   }
 }
 
