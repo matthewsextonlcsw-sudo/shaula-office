@@ -1,0 +1,38 @@
+{
+  "name": "metrics-digest-engine",
+  "description": "A plain-English monthly digest of the practice's numbers — built ONLY from figures the clinician attaches to the run. Nothing attached means the digest says so and stops; no number is ever estimated, extrapolated, or dressed up as a measurement. No PHI: counts and totals only, never a client-level detail.",
+  "variables": ["period", "project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "digest",
+      "title": "Practice digest: {period}",
+      "assignee": "analytics",
+      "priority": "medium",
+      "tags": ["analytics"],
+      "description": "Write the {period} digest for the {project} practice using ONLY the figures the clinician attached to this run (aggregate counts and totals — site visits, inquiries, sessions held, openings; never anything about an identifiable client). For each figure: what it is, how it compares to the prior figure IF a prior figure was attached, and one plain-English sentence on what it suggests — clearly labeled as a reading, not a fact. If no figures were attached, reply exactly [SILENT]. Never estimate a missing number, never invent a comparison, never dress a guess as a measurement."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {period} digest",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["digest"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review the digest against the Shaula honesty rules. Confirm every number traces to an attached figure, every comparison uses only attached figures, readings are labeled as readings, and nothing about an identifiable client appears. An empty run must be exactly [SILENT], not a padded report. Hold until clean."
+    },
+    {
+      "ref": "file",
+      "title": "Human gate — clinician reads and decides: {period} digest",
+      "assignee": "analytics",
+      "priority": "medium",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["analytics", "human-gate"],
+      "description": "HUMAN GATE: the clinician reads the clean digest and decides what, if anything, changes in the practice — the digest informs, it never prescribes. File the digest with the practice's records so next {period} has a real prior to compare against. The office takes no action from these numbers on its own."
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "psychoed-handout-engine",
+  "description": "Client-ready psychoeducation handout on one topic, written at a plain-reading level in the clinician's voice, every factual claim cited or omitted, ending with a clinical disclaimer and a human gate. No PHI — the handout is generic educational material; it names no client and draws on no client data. The clinician personalizes and hands it out; the office never sends it to anyone.",
+  "variables": ["topic", "project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "outline",
+      "title": "Handout outline: {topic}",
+      "assignee": "blog",
+      "priority": "medium",
+      "tags": ["psychoed", "content"],
+      "description": "Outline a one-to-two-page client handout on {topic} for the {project} practice. Decide the three to five things a client most needs to understand, in plain language a stressed reader can follow. List the source you would cite for each factual claim — a real, checkable source only. Cite-or-omit: if you have no source you can name, the claim does not go in the outline. Mark anything that depends on the practice's own approach [CHECK] for the clinician."
+    },
+    {
+      "ref": "handout",
+      "title": "Draft the handout: {topic}",
+      "assignee": "marketer",
+      "priority": "medium",
+      "dependencies": ["outline"],
+      "tags": ["psychoed", "content"],
+      "description": "Write the handout from the approved outline for the {project} practice. Plain words, short sentences, warm and non-judgmental tone — education, never advice about any specific person. Keep every citation from the outline next to its claim. Include a short 'when to reach out' section that points to the practice's own contact channel and, for urgent situations, tells the reader to contact their local emergency services — stated as logistics, never as clinical instruction. End with a disclaimer that this is general educational material, not therapy, diagnosis, or a treatment recommendation, and that the reader's own clinician knows their situation."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {topic} handout",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["handout"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review the handout against the Shaula honesty rules. Confirm every factual claim carries a named source or was cut, the reading level stays plain, no sentence promises an outcome, nothing addresses a specific person's situation, and the disclaimer is present and unsoftened. Hold release until the handout is clean."
+    },
+    {
+      "ref": "deliver",
+      "title": "Human gate — clinician personalizes and adopts: {topic} handout",
+      "assignee": "marketer",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["psychoed", "human-gate"],
+      "description": "HUMAN GATE: the clinician reads the clean handout, fills every [CHECK], adjusts the voice to their own, and decides how it is used. Package the final text so it is easy to print or paste. The office never hands this to a client directly — the clinician does. Record the adopted version and date."
+    }
+  ]
+}

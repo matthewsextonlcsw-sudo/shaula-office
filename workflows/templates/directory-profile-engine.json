@@ -1,0 +1,56 @@
+{
+  "name": "directory-profile-engine",
+  "description": "One master profile, every directory consistent: inventory where the practice is (and should be) listed, write master profile copy in the clinician's voice, cut per-directory variants, and check name-address-phone consistency across all of them — then the clinician pastes each update in themselves. No PHI, no superlatives, no invented credentials; complements local-seo-engine, which handles the search-presence layer.",
+  "variables": ["project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "inventory",
+      "title": "Directory inventory: {project}",
+      "assignee": "strategist",
+      "priority": "medium",
+      "tags": ["directories", "strategy"],
+      "description": "Map where the {project} practice is currently listed and which directories genuinely matter for its population and location — the general business surfaces (search and maps listings) and the therapy-specific directories the practice already uses or plausibly should. Base the inventory ONLY on what the practice actually reports; where the current listing state is unknown, write [CHECK: clinician confirms current listing + login]. Do not invent a listing, a ranking, or traffic data. Output: the inventory table — directory, current state or [CHECK], and why it matters for this practice or why it can be skipped."
+    },
+    {
+      "ref": "master",
+      "title": "Master profile copy: {project}",
+      "assignee": "blog",
+      "priority": "medium",
+      "dependencies": ["inventory"],
+      "tags": ["directories", "copy"],
+      "description": "Write the master profile for the {project} practice in the clinician's own voice: who they are, who they serve, how they work, logistics (location, telehealth, hours, contact), and what a first session is like. Long enough to cut down from. Every credential and service must be a real, verifiable practice fact or [CHECK]; no superlatives, no rankings, no outcome language, no filler warmth. This is the single source every directory variant derives from."
+    },
+    {
+      "ref": "variants",
+      "title": "Per-directory variants + consistency checklist: {project}",
+      "assignee": "marketer",
+      "priority": "medium",
+      "dependencies": ["master"],
+      "tags": ["directories", "copy"],
+      "description": "Cut the master into per-directory variants for each surface the inventory kept — respecting each directory's customary length and structure, never padding or upgrading a claim beyond the master. Then produce the consistency checklist: the practice's canonical name, address, phone, and hours written once, with a checkbox row per directory so the clinician can verify every listing shows the identical details. Inconsistent basics quietly undermine a practice's findability — say that plainly in the checklist header."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {project} directory package",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["variants"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review the inventory, master, variants, and checklist against the Shaula honesty rules. Confirm every variant is derivable from the master with nothing added; every credential and service is real or [CHECK]; no superlative or outcome claim anywhere; the canonical details appear identically in every variant. Hold until clean."
+    },
+    {
+      "ref": "update",
+      "title": "Human gate — clinician updates each directory: {project}",
+      "assignee": "website",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["directories", "human-gate"],
+      "description": "HUMAN GATE: the clinician logs into each directory with their own credentials, pastes the approved variant, and ticks the consistency checklist row. The office never holds directory logins and never edits a listing itself. Record which directories were updated and the date, so the next refresh starts from truth."
+    }
+  ]
+}

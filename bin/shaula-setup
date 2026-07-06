@@ -284,7 +284,7 @@ cat <<EOF
   The kanban board (the office's single source of work-state truth):
     export HERMES_HOME="$HERMES_HOME"
     bin/shaula-board
-  Run your first workflow onto the board (17 capabilities in workflows/templates/):
+  Run your first workflow onto the board (23 capabilities in workflows/templates/):
     python3 -m workflows.cli plan workflows/templates/weekly-blog.json \\
         -v topic="Sleep and anxiety" -v project=my-practice
   Full guide: docs/GETTING_STARTED.md

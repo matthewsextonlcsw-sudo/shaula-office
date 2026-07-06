@@ -3,7 +3,7 @@
 Shaula is an open agent harness (built on [Nous Research Hermes](https://github.com/NousResearch/hermes-agent),
 MIT, vendored and hardened) that runs a therapy practice's **back office**:
 website, blog, FAQ, review replies, newsletters, paperwork drafts, and more —
-as **17 ready-made workflows** on a kanban board, each ending at a human gate.
+as **23 ready-made workflows** on a kanban board, each ending at a human gate.
 
 It runs **on your machine**. Nobody hosts your data; this office houses nothing.
 

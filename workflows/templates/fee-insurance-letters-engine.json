@@ -1,0 +1,65 @@
+{
+  "name": "fee-insurance-letters-engine",
+  "description": "The hard money conversations, drafted as honest blank templates: an out-of-network superbill explainer for clients, a Good Faith Estimate skeleton, a respectful rate-change letter, and sliding-scale policy language. Every amount, date, and code is a [bracketed placeholder] the clinician fills — this workflow invents no fee, no number, and no promise about what any insurer will pay. No PHI: templates only, no client ever named.",
+  "variables": ["project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "superbill_explainer",
+      "title": "Out-of-network superbill explainer: {project}",
+      "assignee": "blog",
+      "priority": "medium",
+      "tags": ["fees", "templates"],
+      "description": "Write the plain-language handout the {project} practice gives clients who pay directly and may seek reimbursement from their own insurer: what a superbill is, how to submit it, what questions to ask their insurer (using the client's own plan words like deductible and out-of-network benefits), and what the practice does and does not handle. Be explicit that reimbursement depends entirely on the client's own plan and that the practice makes no promise about what an insurer will pay. Every amount or code is a [bracketed placeholder]. TEMPLATE ONLY — no client, no real numbers."
+    },
+    {
+      "ref": "gfe_skeleton",
+      "title": "Good Faith Estimate skeleton: {project}",
+      "assignee": "blog",
+      "priority": "medium",
+      "dependencies": ["superbill_explainer"],
+      "tags": ["fees", "templates"],
+      "description": "Draft the Good Faith Estimate template the {project} practice can reuse for self-pay clients under the No Surprises Act: the sections a GFE customarily carries (provider details, service description, [per-session fee placeholder], [expected frequency placeholder], the total-estimate line built from those placeholders, and the client's right to dispute a bill substantially above the estimate). Invent no fee and no total — every number is a [bracketed placeholder] with a one-line note telling the clinician what to enter. Add a note that requirements vary and the clinician should confirm current federal and state requirements with their own counsel or licensing board — this is a formatting aid, not legal advice."
+    },
+    {
+      "ref": "rate_change",
+      "title": "Rate-change letter: {project}",
+      "assignee": "blog",
+      "priority": "medium",
+      "dependencies": ["gfe_skeleton"],
+      "tags": ["fees", "templates"],
+      "description": "Draft the letter the {project} practice sends existing clients ahead of a fee change: direct, warm, no apology spiral and no justification essay — the change stated plainly with [current fee], [new fee], and [effective date] placeholders, generous notice, an invitation to discuss it in session, and a clear note about options if the new fee is not workable ([sliding-scale placeholder] or referral support). TEMPLATE ONLY; the clinician supplies every number and date."
+    },
+    {
+      "ref": "sliding_scale",
+      "title": "Sliding-scale policy language: {project}",
+      "assignee": "blog",
+      "priority": "low",
+      "dependencies": ["rate_change"],
+      "tags": ["fees", "templates"],
+      "description": "Write the {project} practice's sliding-scale policy paragraph for its paperwork and website: who may ask, how the conversation happens, [number of sliding-scale spots placeholder], [range placeholder], and how the practice reviews the arrangement over time. Dignity-first framing — asking is normal, the conversation is private, the clinician decides. Invent no amounts; every specific is a [bracketed placeholder]."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {project} fee-letters pack",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["sliding_scale"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review all four documents against the Shaula honesty rules. Confirm: no invented number anywhere — every amount, date, and code sits in a [bracketed placeholder]; no promise about insurer behavior or reimbursement; the GFE piece carries its confirm-with-counsel note; tone stays respectful and plain. Hold until clean."
+    },
+    {
+      "ref": "adopt",
+      "title": "Human gate — clinician fills and adopts: {project} fee letters",
+      "assignee": "marketer",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["fees", "human-gate"],
+      "description": "HUMAN GATE: the clinician enters their real fees, dates, and policy specifics, confirms the GFE skeleton against current requirements, and saves the pack with their practice documents. The office never sends a fee letter — the clinician does, personally, every time. Record the adopted date."
+    }
+  ]
+}

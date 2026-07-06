@@ -7,7 +7,7 @@
             "category": "website",
             "template": "templates/website-launch.json",
             "tier": "free",
-            "cap": "Honesty review gates publish. The OFFICE performs the deterministic build + publish after the clinician's okay — a worker never deploys.",
+            "cap": "Honesty review gates publish. The OFFICE performs the deterministic build + publish after the clinician's okay \u2014 a worker never deploys.",
             "human_gate": true,
             "replaces": [
                 "Squarespace",
@@ -75,7 +75,7 @@
                 "distributor",
                 "reviewer"
             ],
-            "description": "White-hat earned backlinks: Quora, Reddit, Medium/Substack (rel=canonical), LinkedIn, HARO. Human posts every piece — agent never auto-posts."
+            "description": "White-hat earned backlinks: Quora, Reddit, Medium/Substack (rel=canonical), LinkedIn, HARO. Human posts every piece \u2014 agent never auto-posts."
         },
         {
             "id": "copy-engine",
@@ -94,7 +94,7 @@
                 "marketer",
                 "reviewer"
             ],
-            "description": "Landing, about, services, and bio page copy. Clinician reviews and publishes — agent never touches the site."
+            "description": "Landing, about, services, and bio page copy. Clinician reviews and publishes \u2014 agent never touches the site."
         },
         {
             "id": "deck-engine",
@@ -148,7 +148,7 @@
                 "marketer",
                 "reviewer"
             ],
-            "description": "Three ad copy variants plus image briefs for Google, Meta, and directory placements. Clinician places the ad — agent never touches ad platforms."
+            "description": "Three ad copy variants plus image briefs for Google, Meta, and directory placements. Clinician places the ad \u2014 agent never touches ad platforms."
         },
         {
             "id": "newsletter-engine",
@@ -175,7 +175,7 @@
             "category": "documents",
             "template": "templates/research-engine.json",
             "tier": "free",
-            "cap": "Synthesis from the model's own general knowledge — no live database or web access. Every named source must be independently verified by the clinician before relying on it.",
+            "cap": "Synthesis from the model's own general knowledge \u2014 no live database or web access. Every named source must be independently verified by the clinician before relying on it.",
             "human_gate": true,
             "replaces": [
                 "Elicit",
@@ -186,7 +186,7 @@
                 "blog",
                 "reviewer"
             ],
-            "description": "Ask one clinical-topic or practice question; get an honest, verify-first research brief — scoped sub-questions, confidence-labeled findings, practical considerations, and a source checklist. Informational background, never clinical advice."
+            "description": "Ask one clinical-topic or practice question; get an honest, verify-first research brief \u2014 scoped sub-questions, confidence-labeled findings, practical considerations, and a source checklist. Informational background, never clinical advice."
         },
         {
             "id": "faq-engine",
@@ -214,7 +214,7 @@
             "category": "reputation",
             "template": "templates/reputation-engine.json",
             "tier": "free",
-            "cap": "The reply never confirms or denies that anyone is or was a client and never references care — the confidentiality rule is enforced at review, and the clinician posts every reply themselves.",
+            "cap": "The reply never confirms or denies that anyone is or was a client and never references care \u2014 the confidentiality rule is enforced at review, and the clinician posts every reply themselves.",
             "human_gate": true,
             "replaces": [
                 "Birdeye",
@@ -244,7 +244,7 @@
                 "blog",
                 "reviewer"
             ],
-            "description": "A month of honest topics from real demand signal — one essay slot per week with its reason named, briefed and ready to feed Weekly Blog or Growth Engine runs. Clinician adopts or cuts each slot."
+            "description": "A month of honest topics from real demand signal \u2014 one essay slot per week with its reason named, briefed and ready to feed Weekly Blog or Growth Engine runs. Clinician adopts or cuts each slot."
         },
         {
             "id": "local-seo-engine",
@@ -271,7 +271,7 @@
             "category": "email",
             "template": "templates/onboarding-email-engine.json",
             "tier": "free",
-            "cap": "Blank templates only — bracketed placeholder fields, no client data, and the office never connects to the practice's email or sends anything.",
+            "cap": "Blank templates only \u2014 bracketed placeholder fields, no client data, and the office never connects to the practice's email or sends anything.",
             "human_gate": true,
             "replaces": [
                 "Mailchimp welcome flows"
@@ -281,7 +281,7 @@
                 "marketer",
                 "reviewer"
             ],
-            "description": "A new-client welcome sequence — what to expect, logistics, paperwork reminders — as blank templates the clinician loads into their own email tool. Clinical outreach gets no template; that stays with the clinician."
+            "description": "A new-client welcome sequence \u2014 what to expect, logistics, paperwork reminders \u2014 as blank templates the clinician loads into their own email tool. Clinical outreach gets no template; that stays with the clinician."
         },
         {
             "id": "social-clip-engine",
@@ -289,7 +289,7 @@
             "category": "social",
             "template": "templates/social-clip-engine.json",
             "tier": "free",
-            "cap": "The OFFICE performs the deterministic clip render after the clinician's okay, and the clinician posts from their own account — a worker never renders early or posts.",
+            "cap": "The OFFICE performs the deterministic clip render after the clinician's okay, and the clinician posts from their own account \u2014 a worker never renders early or posts.",
             "human_gate": true,
             "replaces": [
                 "Opus Clip"
@@ -298,7 +298,7 @@
                 "marketer",
                 "reviewer"
             ],
-            "description": "One approved essay becomes a short-video clip script and caption package — a verbatim passage, on-screen beats, and a caption that sells the read, never a clinical promise. Clinician approves before anything renders."
+            "description": "One approved essay becomes a short-video clip script and caption package \u2014 a verbatim passage, on-screen beats, and a caption that sells the read, never a clinical promise. Clinician approves before anything renders."
         },
         {
             "id": "practice-forms-engine",
@@ -306,7 +306,7 @@
             "category": "documents",
             "template": "templates/practice-forms-engine.json",
             "tier": "free",
-            "cap": "Starting drafts only, never legal advice — the clinician finalizes every document, with their attorney's review where their situation requires it.",
+            "cap": "Starting drafts only, never legal advice \u2014 the clinician finalizes every document, with their attorney's review where their situation requires it.",
             "human_gate": true,
             "replaces": [
                 "form template marketplaces"
@@ -316,7 +316,117 @@
                 "blog",
                 "reviewer"
             ],
-            "description": "Plain-language starting drafts of practice paperwork — cancellation policy, fee agreement, telehealth consent, office policies — with blank placeholder fields and every unknown marked for the clinician. Clinician finalizes and adopts."
+            "description": "Plain-language starting drafts of practice paperwork \u2014 cancellation policy, fee agreement, telehealth consent, office policies \u2014 with blank placeholder fields and every unknown marked for the clinician. Clinician finalizes and adopts."
+        },
+        {
+            "id": "psychoed-handout-engine",
+            "label": "Psychoed Handouts",
+            "category": "documents",
+            "template": "templates/psychoed-handout-engine.json",
+            "tier": "free",
+            "cap": "Education only, cite-or-omit, ends with a clinical disclaimer \u2014 the clinician personalizes and hands it out; the office never gives material to a client.",
+            "human_gate": true,
+            "replaces": [
+                "worksheet marketplaces"
+            ],
+            "staff": [
+                "blog",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "Client-ready psychoeducation handout on one topic, plain-reading level, every factual claim cited or omitted, disclaimer included. Clinician personalizes and hands out."
+        },
+        {
+            "id": "referral-outreach-engine",
+            "label": "Referral Outreach",
+            "category": "outreach",
+            "template": "templates/referral-outreach-engine.json",
+            "tier": "free",
+            "cap": "Drafts only \u2014 the clinician supplies real contacts and sends every message personally; nothing is ever auto-sent.",
+            "human_gate": true,
+            "replaces": [
+                "practice-growth consultants"
+            ],
+            "staff": [
+                "strategist",
+                "blog",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "Build the referral network honestly: fit map, introduction letter, practice one-pager, and a respectful follow-up cadence \u2014 the clinician sends each message themselves."
+        },
+        {
+            "id": "client-comms-pack-engine",
+            "label": "Client Comms Scripts",
+            "category": "documents",
+            "template": "templates/client-comms-pack-engine.json",
+            "tier": "free",
+            "cap": "Blank templates only \u2014 bracketed placeholders, no client detail ever; the clinician personalizes and sends every message.",
+            "human_gate": true,
+            "replaces": [
+                "copy-paste script packs"
+            ],
+            "staff": [
+                "blog",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "The money-losing-conversation scripts as blank templates: waitlist slot offers, gentle rebooking, missed-appointment follow-up, and the cancellation-policy blurb."
+        },
+        {
+            "id": "fee-insurance-letters-engine",
+            "label": "Fee + Insurance Letters",
+            "category": "documents",
+            "template": "templates/fee-insurance-letters-engine.json",
+            "tier": "free",
+            "cap": "Formatting aids, never legal or billing advice \u2014 every amount is a placeholder the clinician fills; no promise about what any insurer pays.",
+            "human_gate": true,
+            "replaces": [
+                "billing-letter templates"
+            ],
+            "staff": [
+                "blog",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "The hard money conversations as honest blank templates: out-of-network superbill explainer, Good Faith Estimate skeleton, rate-change letter, sliding-scale policy language."
+        },
+        {
+            "id": "directory-profile-engine",
+            "label": "Directory Profiles",
+            "category": "website",
+            "template": "templates/directory-profile-engine.json",
+            "tier": "free",
+            "cap": "The clinician holds every directory login and pastes each update in \u2014 the office never edits a listing itself.",
+            "human_gate": true,
+            "replaces": [
+                "profile copywriting services"
+            ],
+            "staff": [
+                "strategist",
+                "blog",
+                "marketer",
+                "reviewer",
+                "website"
+            ],
+            "description": "One master profile, every directory consistent: inventory, master copy in the clinician's voice, per-directory variants, and a name-address-phone consistency checklist."
+        },
+        {
+            "id": "metrics-digest-engine",
+            "label": "Practice Metrics Digest",
+            "category": "analytics",
+            "template": "templates/metrics-digest-engine.json",
+            "tier": "free",
+            "cap": "Built only from figures the clinician attaches \u2014 an empty month reads [SILENT], never a padded report; no number is ever estimated.",
+            "human_gate": true,
+            "replaces": [
+                "monthly report spreadsheets"
+            ],
+            "staff": [
+                "analytics",
+                "reviewer"
+            ],
+            "description": "A plain-English digest of the practice's numbers, from the clinician's own attached figures only, with readings labeled as readings \u2014 informs, never prescribes."
         }
     ]
 }

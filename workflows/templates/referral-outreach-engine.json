@@ -1,0 +1,65 @@
+{
+  "name": "referral-outreach-engine",
+  "description": "Professional referral-network outreach the honest way: identify the referrer types that actually fit the practice, draft an introduction letter, a one-page practice summary, and a respectful follow-up cadence — then a human sends every message personally. No PHI, no invented relationships, no invented outcomes; the practice's real services and logistics are the only raw material.",
+  "variables": ["audience", "project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "targets",
+      "title": "Referral-fit map: {audience}",
+      "assignee": "strategist",
+      "priority": "medium",
+      "tags": ["outreach", "strategy"],
+      "description": "For the {project} practice, map which {audience} contacts are genuinely worth an introduction, based ONLY on the practice's real services, population, availability, and location. Describe the fit criteria and the categories of contact worth pursuing (for example: the kind of clinic, the kind of school role, the kind of employee-assistance coordinator). Do not invent a single named contact, a relationship, or an interest level — where a real list belongs, write [CHECK: clinician supplies actual names]. Output: fit criteria, contact categories, and what the practice honestly offers each."
+    },
+    {
+      "ref": "letter",
+      "title": "Introduction letter: {audience}",
+      "assignee": "blog",
+      "priority": "medium",
+      "dependencies": ["targets"],
+      "tags": ["outreach", "copy"],
+      "description": "Draft a short introduction letter from the clinician to a {audience} contact for the {project} practice. Plain, collegial, specific: who the clinician is, who they serve, what a smooth referral looks like, and how to reach the practice. Use [bracketed placeholders] for the recipient's name and any specifics the clinician personalizes per contact. No efficacy claims, no invented caseload facts, no urgency tricks — the letter earns a reply by being useful and honest about scope and availability."
+    },
+    {
+      "ref": "onepager",
+      "title": "Practice one-pager: {project}",
+      "assignee": "marketer",
+      "priority": "medium",
+      "dependencies": ["targets"],
+      "tags": ["outreach", "copy"],
+      "description": "Write the one-page practice summary a {audience} contact can keep on file: services, populations served, modalities offered, logistics (location, telehealth, hours, how to refer), and contact details — every line a verifiable practice fact from the {project} practice, [CHECK] where the clinician must confirm. No superlatives, no rankings, no outcome language. Format it so the practice can drop it into a document and print."
+    },
+    {
+      "ref": "cadence",
+      "title": "Follow-up cadence: {audience}",
+      "assignee": "marketer",
+      "priority": "low",
+      "dependencies": ["letter", "onepager"],
+      "tags": ["outreach"],
+      "description": "Propose a respectful follow-up rhythm for the {project} practice's {audience} outreach: when to follow up after the first letter, what a useful second touch contains (a new practice fact, an updated availability note — never pressure), and when to stop. Draft the short follow-up note templates with [bracketed placeholders]. The rule: every touch gives the recipient something true and useful, or it is not sent."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {audience} outreach package",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["cadence"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review the fit map, letter, one-pager, and cadence against the Shaula honesty rules. Confirm no invented contact, relationship, statistic, or outcome appears anywhere; every practice fact is real or marked [CHECK]; and the tone stays collegial, never salesy. Hold until clean."
+    },
+    {
+      "ref": "send",
+      "title": "Human gate — clinician personalizes and sends: {audience} outreach",
+      "assignee": "marketer",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["outreach", "human-gate"],
+      "description": "HUMAN GATE: the clinician supplies the real contact names, personalizes each letter, and sends every message themselves from their own account. The office never contacts a referrer directly and never automates the sending. Record who was contacted and when, so the cadence step's follow-ups stay honest."
+    }
+  ]
+}

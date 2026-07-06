@@ -1,5 +1,5 @@
-"""local_runner — the desktop app's built-in office: the 17 workflows, run
-entirely on this machine.
+"""local_runner — the desktop app's built-in office: every shipped workflow
+(the CAPABILITY_MANIFEST set), run entirely on this machine.
 
 The cockpit UI (index.html) was built against the hosted svc's contract:
 GET /api/roster (staff cards with capability menus), POST /api/runs (queue a

@@ -1,0 +1,65 @@
+{
+  "name": "client-comms-pack-engine",
+  "description": "The money-losing-conversation scripts, as blank templates: waitlist slot offers, gentle rebooking after a cancellation, missed-appointment follow-up, and the practice's cancellation-policy blurb. Templates only — [bracketed placeholders] everywhere a person or date would go; no client name, story, or detail ever enters this workflow. The clinician personalizes and sends each message themselves.",
+  "variables": ["project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "waitlist_offer",
+      "title": "Waitlist slot-offer script: {project}",
+      "assignee": "blog",
+      "priority": "medium",
+      "tags": ["comms", "templates"],
+      "description": "Draft the message the {project} practice sends when a slot opens and someone on the waitlist could take it. Two variants: email and text-length. Warm, low-pressure, clear on the specifics the clinician will fill in: [day/time], [format], [how to claim it], [reply-by time stated as a courtesy, not a countdown]. TEMPLATE ONLY: every person-specific detail is a [bracketed placeholder]; write no example that resembles a real person. State nothing about why the slot opened."
+    },
+    {
+      "ref": "rebooking",
+      "title": "Gentle rebooking script: {project}",
+      "assignee": "blog",
+      "priority": "medium",
+      "dependencies": ["waitlist_offer"],
+      "tags": ["comms", "templates"],
+      "description": "Draft the {project} practice's gentle rebooking message for after a cancellation — the note that makes returning easy without guilt. Email and text-length variants, [bracketed placeholders] for names and dates. Tone: the door is open, scheduling is easy, no interrogation of the reason, no pressure. Include one variant for a first-time cancellation and one for someone who has been away a while — both generic templates, neither describing any actual person."
+    },
+    {
+      "ref": "missed_session",
+      "title": "Missed-appointment follow-up script: {project}",
+      "assignee": "blog",
+      "priority": "medium",
+      "dependencies": ["rebooking"],
+      "tags": ["comms", "templates"],
+      "description": "Draft the follow-up the {project} practice sends after a missed appointment without notice: brief, kind, assumes good faith, states the practice's policy plainly using a [policy placeholder the clinician fills from their own written policy], and offers the easy path to rebook. TEMPLATE ONLY with [bracketed placeholders]. Never speculate about the reason for the miss; never include clinical content."
+    },
+    {
+      "ref": "policy_blurb",
+      "title": "Cancellation-policy blurb: {project}",
+      "assignee": "blog",
+      "priority": "low",
+      "dependencies": ["missed_session"],
+      "tags": ["comms", "templates"],
+      "description": "Write the short cancellation-and-missed-appointment policy paragraph the {project} practice can reuse in intake paperwork, its website, and reminder footers. Plain language, respectful, with [bracketed placeholders] for the notice window and any fee the practice actually charges — invent no amount, no percentage, no deadline; the clinician supplies every number. One version formal, one conversational."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {project} comms pack",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["policy_blurb"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review all four scripts against the Shaula honesty rules. Confirm every one is a true blank template — no name, date, amount, or detail that could describe a real person or a fact the practice has not supplied; every specific sits in a [bracketed placeholder]; tone stays warm and pressure-free; nothing reads as clinical advice. Hold until clean."
+    },
+    {
+      "ref": "adopt",
+      "title": "Human gate — clinician adopts the comms pack: {project}",
+      "assignee": "marketer",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["comms", "human-gate"],
+      "description": "HUMAN GATE: the clinician fills the placeholders from their own policies, adjusts the voice, and saves the pack wherever they keep practice documents. Every future use is the clinician personalizing and sending a message themselves — the office never sends a client-facing message. Package the final pack for easy copy-paste and record the adopted date."
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 Shaula is an AI-staffed back office for a therapy practice: a hardened agent
 harness (vendored Nous Research Hermes, MIT) with an honesty engine, a kanban
-work board, and 17 ready-made office workflows — website, blog, FAQ, review
+work board, and 23 ready-made office workflows — website, blog, FAQ, review
 replies, newsletters, paperwork drafts, and more. It runs **on your machine**.
 Nothing is hosted by us; we house nothing.
 
@@ -131,10 +131,12 @@ python3 -m workflows.cli emit workflows/templates/weekly-blog.json \
 `--instance-key` makes re-runs safe: emitting the same key twice updates the
 same cards instead of duplicating them.
 
-**The 17 capabilities** live in `workflows/templates/` — website launch, weekly
+**The 23 capabilities** live in `workflows/templates/` — website launch, weekly
 blog, growth engine, FAQ page, review replies, content calendar, local
 presence, welcome emails, social clips, practice paperwork, research desk,
-decks, proposals, ads, newsletters, page copy, backlinks. Each is a small JSON
+decks, proposals, ads, newsletters, page copy, backlinks, psychoed handouts,
+referral outreach, client comms scripts, fee and insurance letters, directory
+profiles, and a practice metrics digest. Each is a small JSON
 file you can read in a minute; `workflows/README.md` documents the format and
 the four guardrails every template must pass (vetted staff only · PHI gate ·
 honesty lint · acyclic dependencies).

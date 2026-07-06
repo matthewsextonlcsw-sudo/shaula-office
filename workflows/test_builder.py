@@ -664,6 +664,104 @@ class OfficeExpansionTemplates(unittest.TestCase):
                                  f"{t.name}:{s.ref} uses a PHI profile")
 
 
+_PSYCHOED = os.path.join(_HERE, "templates", "psychoed-handout-engine.json")
+_REFERRAL = os.path.join(_HERE, "templates", "referral-outreach-engine.json")
+_COMMS = os.path.join(_HERE, "templates", "client-comms-pack-engine.json")
+_FEES = os.path.join(_HERE, "templates", "fee-insurance-letters-engine.json")
+_DIRECTORY = os.path.join(_HERE, "templates", "directory-profile-engine.json")
+_METRICS = os.path.join(_HERE, "templates", "metrics-digest-engine.json")
+
+
+class DemandExpansionTemplates(unittest.TestCase):
+    """The Tier-1/2 demand-research batch (2026-07-06): psychoed-handout-,
+    referral-outreach-, client-comms-pack-, fee-insurance-letters-,
+    directory-profile-, and metrics-digest-engine. Same contract as
+    OfficeExpansionTemplates: load, validate honesty-clean, plan to the
+    expected chain, end on a triage human gate, no-PHI profiles only."""
+
+    def _check_common(self, tmpl, plan, expected_steps):
+        self.assertFalse(tmpl.allow_phi)
+        for p in plan:
+            self.assertIn(p.payload["assignee"], B.VETTED_PROFILES)
+            self.assertNotIn(p.payload["assignee"], B.PHI_PROFILES)
+        self.assertEqual(len(plan), expected_steps)
+        last = plan[-1].payload
+        self.assertTrue(last.get("triage"), "final step must be a triage human gate")
+        self.assertIn("REQUIRES HUMAN REVIEW", last["body"])
+
+    def test_psychoed_handout_engine(self):
+        t = B.load_template_file(_PSYCHOED)
+        self.assertEqual(t.name, "psychoed-handout-engine")
+        B.validate(t)
+        plan = B.build_plan(t, {"topic": "sleep and anxiety", "project": "cedar-sage"})
+        self._check_common(t, plan, 4)
+        self.assertEqual([p.ref for p in plan], ["outline", "handout", "review", "deliver"])
+        # cite-or-omit + the disclaimer are baked into the task bodies
+        self.assertIn("cite-or-omit", plan[0].payload["body"].lower())
+        self.assertIn("disclaimer", plan[1].payload["body"].lower())
+
+    def test_referral_outreach_engine(self):
+        t = B.load_template_file(_REFERRAL)
+        self.assertEqual(t.name, "referral-outreach-engine")
+        B.validate(t)
+        plan = B.build_plan(t, {"audience": "primary-care physicians", "project": "cedar-sage"})
+        self._check_common(t, plan, 6)
+        refs = [p.ref for p in plan]
+        self.assertEqual(refs[0], "targets")
+        self.assertEqual(refs[-1], "send")
+        # the no-invented-contacts rule is in the strategist body; the human
+        # sends every message personally at the gate
+        self.assertIn("[CHECK", plan[0].payload["body"])
+        self.assertIn("sends every message themselves", plan[-1].payload["body"])
+
+    def test_client_comms_pack_engine(self):
+        t = B.load_template_file(_COMMS)
+        self.assertEqual(t.name, "client-comms-pack-engine")
+        B.validate(t)
+        plan = B.build_plan(t, {"project": "cedar-sage"})
+        self._check_common(t, plan, 6)
+        # every drafting body enforces the blank-template rule
+        for p in plan[:4]:
+            self.assertIn("placeholder", p.payload["body"].lower(),
+                          f"{p.ref}: template-only rule missing")
+
+    def test_fee_insurance_letters_engine(self):
+        t = B.load_template_file(_FEES)
+        self.assertEqual(t.name, "fee-insurance-letters-engine")
+        B.validate(t)
+        plan = B.build_plan(t, {"project": "cedar-sage"})
+        self._check_common(t, plan, 6)
+        refs = [p.ref for p in plan]
+        self.assertEqual(refs, ["superbill_explainer", "gfe_skeleton", "rate_change",
+                                "sliding_scale", "review", "adopt"])
+        # no promises about insurer behavior; nothing here is legal advice
+        self.assertIn("no promise about what an insurer will pay",
+                      plan[0].payload["body"].lower())
+        self.assertIn("not legal advice", plan[1].payload["body"].lower())
+
+    def test_directory_profile_engine(self):
+        t = B.load_template_file(_DIRECTORY)
+        self.assertEqual(t.name, "directory-profile-engine")
+        B.validate(t)
+        plan = B.build_plan(t, {"project": "cedar-sage"})
+        self._check_common(t, plan, 5)
+        self.assertEqual([p.ref for p in plan],
+                         ["inventory", "master", "variants", "review", "update"])
+        # the office never holds directory logins
+        self.assertIn("never holds directory logins", plan[-1].payload["body"].lower())
+
+    def test_metrics_digest_engine(self):
+        t = B.load_template_file(_METRICS)
+        self.assertEqual(t.name, "metrics-digest-engine")
+        B.validate(t)
+        plan = B.build_plan(t, {"period": "June", "project": "cedar-sage"})
+        self._check_common(t, plan, 3)
+        self.assertEqual([p.ref for p in plan], ["digest", "review", "file"])
+        # attached-figures-only + the [SILENT] empty-state contract
+        self.assertIn("[SILENT]", plan[0].payload["body"])
+        self.assertIn("never estimate", plan[0].payload["body"].lower())
+
+
 class ManifestIntegrity(unittest.TestCase):
     """CAPABILITY_MANIFEST.json is the product surface (svc/capabilities.py
     renders staff menus from it verbatim). Pin the whole surface: every entry
