@@ -150,6 +150,8 @@ python3 -m unittest workflows.test_builder >/dev/null 2>&1 \
   || fail "workflow builder suite failed (workflows/test_builder.py)"
 python3 -m unittest tests.test_local_executor >/dev/null 2>&1 \
   || fail "local executor seam suite failed (tests/test_local_executor.py)"
+python3 -m unittest tests.test_cockpit_local_runner >/dev/null 2>&1 \
+  || fail "desktop built-in office suite failed (tests/test_cockpit_local_runner.py)"
 green "PASS  workflow builder — allow-list/PHI/honesty/DAG + manifest pinned + executor parks at the human gate"
 echo
 
