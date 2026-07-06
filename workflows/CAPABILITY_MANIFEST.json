@@ -1,0 +1,322 @@
+{
+    "version": "1.0.0",
+    "capabilities": [
+        {
+            "id": "website-launch",
+            "label": "Practice Website",
+            "category": "website",
+            "template": "templates/website-launch.json",
+            "tier": "free",
+            "cap": "Honesty review gates publish. The OFFICE performs the deterministic build + publish after the clinician's okay — a worker never deploys.",
+            "human_gate": true,
+            "replaces": [
+                "Squarespace",
+                "Brighter Vision"
+            ],
+            "staff": [
+                "website",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "Build, fact-check, and publish one honest private-practice website on a hosted address the practice can share the day it's approved. The $-anchor deliverable."
+        },
+        {
+            "id": "growth-engine",
+            "label": "Growth Engine",
+            "category": "content",
+            "template": "templates/growth-engine.json",
+            "tier": "free",
+            "cap": null,
+            "human_gate": false,
+            "replaces": [
+                "Semrush content briefs"
+            ],
+            "staff": [
+                "strategist",
+                "blog",
+                "website",
+                "marketer",
+                "reviewer",
+                "analytics"
+            ],
+            "description": "Data-driven content loop: pick topic from real demand signal, draft, GEO-optimize, honesty-review. No auto-publish."
+        },
+        {
+            "id": "weekly-blog",
+            "label": "Weekly Blog",
+            "category": "content",
+            "template": "templates/weekly-blog.json",
+            "tier": "free",
+            "cap": null,
+            "human_gate": false,
+            "replaces": [
+                "Jasper blog",
+                "Copy.ai blog"
+            ],
+            "staff": [
+                "blog",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "One honest cited post per week plus three social teasers. Stops at honesty review."
+        },
+        {
+            "id": "distribution-engine",
+            "label": "Backlink Engine",
+            "category": "content",
+            "template": "templates/distribution-engine.json",
+            "tier": "free",
+            "cap": null,
+            "human_gate": true,
+            "replaces": [
+                "manual link outreach"
+            ],
+            "staff": [
+                "distributor",
+                "reviewer"
+            ],
+            "description": "White-hat earned backlinks: Quora, Reddit, Medium/Substack (rel=canonical), LinkedIn, HARO. Human posts every piece — agent never auto-posts."
+        },
+        {
+            "id": "copy-engine",
+            "label": "Page Copy",
+            "category": "copy",
+            "template": "templates/copy-engine.json",
+            "tier": "free",
+            "cap": null,
+            "human_gate": true,
+            "replaces": [
+                "Jasper",
+                "Copy.ai"
+            ],
+            "staff": [
+                "blog",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "Landing, about, services, and bio page copy. Clinician reviews and publishes — agent never touches the site."
+        },
+        {
+            "id": "deck-engine",
+            "label": "Decks & Handouts",
+            "category": "documents",
+            "template": "templates/deck-engine.json",
+            "tier": "free",
+            "cap": null,
+            "human_gate": true,
+            "replaces": [
+                "Gamma"
+            ],
+            "staff": [
+                "blog",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "Psychoeducation slides, workshop decks, group handouts, supervision packets. Outputs a slide-by-slide draft with speaker notes, ready to paste into Google Slides or PowerPoint. Clinician builds the file and delivers."
+        },
+        {
+            "id": "proposal-engine",
+            "label": "Proposals & Letters",
+            "category": "documents",
+            "template": "templates/proposal-engine.json",
+            "tier": "free",
+            "cap": null,
+            "human_gate": true,
+            "replaces": [
+                "PandaDoc"
+            ],
+            "staff": [
+                "blog",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "Referral-partner proposals, group contracts, supervision agreements, speaking offers. Outputs a ready-to-send letter draft to paste into Google Docs or Word. Clinician signs and sends."
+        },
+        {
+            "id": "ad-creative-engine",
+            "label": "Ad Creative",
+            "category": "ads",
+            "template": "templates/ad-creative-engine.json",
+            "tier": "free",
+            "cap": null,
+            "human_gate": true,
+            "replaces": [
+                "AdCreative.ai"
+            ],
+            "staff": [
+                "blog",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "Three ad copy variants plus image briefs for Google, Meta, and directory placements. Clinician places the ad — agent never touches ad platforms."
+        },
+        {
+            "id": "newsletter-engine",
+            "label": "Newsletter",
+            "category": "email",
+            "template": "templates/newsletter-engine.json",
+            "tier": "free",
+            "cap": "Delivery is the clinician's own email tool. Free tiers on beehiiv and MailerLite cap subscriber lists. Clinician manages their own plan and list size.",
+            "human_gate": true,
+            "replaces": [
+                "beehiiv",
+                "MailerLite"
+            ],
+            "staff": [
+                "blog",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "Practitioner updates, psychoeducation digests, workshop announcements. Outputs a formatted draft. Clinician sends."
+        },
+        {
+            "id": "research-engine",
+            "label": "Research Desk",
+            "category": "documents",
+            "template": "templates/research-engine.json",
+            "tier": "free",
+            "cap": "Synthesis from the model's own general knowledge — no live database or web access. Every named source must be independently verified by the clinician before relying on it.",
+            "human_gate": true,
+            "replaces": [
+                "Elicit",
+                "manual literature searches"
+            ],
+            "staff": [
+                "strategist",
+                "blog",
+                "reviewer"
+            ],
+            "description": "Ask one clinical-topic or practice question; get an honest, verify-first research brief — scoped sub-questions, confidence-labeled findings, practical considerations, and a source checklist. Informational background, never clinical advice."
+        },
+        {
+            "id": "faq-engine",
+            "label": "FAQ Page",
+            "category": "website",
+            "template": "templates/faq-engine.json",
+            "tier": "free",
+            "cap": null,
+            "human_gate": true,
+            "replaces": [
+                "hand-built FAQ pages"
+            ],
+            "staff": [
+                "strategist",
+                "blog",
+                "marketer",
+                "website",
+                "reviewer"
+            ],
+            "description": "A practice FAQ built from questions people really ask, answered honestly in the clinician's voice, with FAQPage structured data so answer engines can cite it. Clinician fills the blanks and publishes."
+        },
+        {
+            "id": "reputation-engine",
+            "label": "Review Replies",
+            "category": "reputation",
+            "template": "templates/reputation-engine.json",
+            "tier": "free",
+            "cap": "The reply never confirms or denies that anyone is or was a client and never references care — the confidentiality rule is enforced at review, and the clinician posts every reply themselves.",
+            "human_gate": true,
+            "replaces": [
+                "Birdeye",
+                "Podium"
+            ],
+            "staff": [
+                "strategist",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "A compliant public reply to a public review: warm, generic about care, logistics only, conversation invited offline. Clinician approves and posts."
+        },
+        {
+            "id": "content-calendar-engine",
+            "label": "Content Calendar",
+            "category": "content",
+            "template": "templates/content-calendar-engine.json",
+            "tier": "free",
+            "cap": null,
+            "human_gate": true,
+            "replaces": [
+                "CoSchedule",
+                "spreadsheet planning"
+            ],
+            "staff": [
+                "strategist",
+                "blog",
+                "reviewer"
+            ],
+            "description": "A month of honest topics from real demand signal — one essay slot per week with its reason named, briefed and ready to feed Weekly Blog or Growth Engine runs. Clinician adopts or cuts each slot."
+        },
+        {
+            "id": "local-seo-engine",
+            "label": "Local Presence",
+            "category": "website",
+            "template": "templates/local-seo-engine.json",
+            "tier": "free",
+            "cap": null,
+            "human_gate": true,
+            "replaces": [
+                "BrightLocal",
+                "Yext"
+            ],
+            "staff": [
+                "strategist",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "Audit of the practice's real directory and maps presence, honest profile copy, consistent name-address-phone, and local structured data. Clinician applies every change in their own accounts."
+        },
+        {
+            "id": "onboarding-email-engine",
+            "label": "Welcome Emails",
+            "category": "email",
+            "template": "templates/onboarding-email-engine.json",
+            "tier": "free",
+            "cap": "Blank templates only — bracketed placeholder fields, no client data, and the office never connects to the practice's email or sends anything.",
+            "human_gate": true,
+            "replaces": [
+                "Mailchimp welcome flows"
+            ],
+            "staff": [
+                "strategist",
+                "marketer",
+                "reviewer"
+            ],
+            "description": "A new-client welcome sequence — what to expect, logistics, paperwork reminders — as blank templates the clinician loads into their own email tool. Clinical outreach gets no template; that stays with the clinician."
+        },
+        {
+            "id": "social-clip-engine",
+            "label": "Social Clips",
+            "category": "social",
+            "template": "templates/social-clip-engine.json",
+            "tier": "free",
+            "cap": "The OFFICE performs the deterministic clip render after the clinician's okay, and the clinician posts from their own account — a worker never renders early or posts.",
+            "human_gate": true,
+            "replaces": [
+                "Opus Clip"
+            ],
+            "staff": [
+                "marketer",
+                "reviewer"
+            ],
+            "description": "One approved essay becomes a short-video clip script and caption package — a verbatim passage, on-screen beats, and a caption that sells the read, never a clinical promise. Clinician approves before anything renders."
+        },
+        {
+            "id": "practice-forms-engine",
+            "label": "Practice Paperwork",
+            "category": "documents",
+            "template": "templates/practice-forms-engine.json",
+            "tier": "free",
+            "cap": "Starting drafts only, never legal advice — the clinician finalizes every document, with their attorney's review where their situation requires it.",
+            "human_gate": true,
+            "replaces": [
+                "form template marketplaces"
+            ],
+            "staff": [
+                "strategist",
+                "blog",
+                "reviewer"
+            ],
+            "description": "Plain-language starting drafts of practice paperwork — cancellation policy, fee agreement, telehealth consent, office policies — with blank placeholder fields and every unknown marked for the clinician. Clinician finalizes and adopts."
+        }
+    ]
+}

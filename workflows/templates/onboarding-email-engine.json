@@ -1,0 +1,47 @@
+{
+  "name": "onboarding-email-engine",
+  "description": "A welcome sequence of blank email templates for new clients — what to expect, logistics, paperwork reminders, first-session prep — drafted in the practice's voice with placeholder fields, honesty-reviewed, then the clinician loads them into their own email tool. The office sends nothing and stores no client data; the templates are blank by construction.",
+  "variables": ["audience", "project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "map",
+      "title": "Map the onboarding moments: {audience}",
+      "assignee": "strategist",
+      "priority": "medium",
+      "tags": ["onboarding", "strategy"],
+      "description": "Map the onboarding journey for {audience} at the {project} practice as a sequence of moments a template email can serve: inquiry received, consult scheduled, paperwork sent, first-session prep, week-one check-in note. Logistics only — scheduling, forms, fees, parking, telehealth links, cancellation policy. Clinical outreach, risk, and crisis are the clinician's alone and get NO template; say so explicitly in the map. Mark any practice-specific fact you cannot verify [CHECK]. Output the ordered list of moments, each with its purpose in one line."
+    },
+    {
+      "ref": "drafts",
+      "title": "Draft the template emails: {audience}",
+      "assignee": "marketer",
+      "priority": "medium",
+      "dependencies": ["map"],
+      "tags": ["onboarding", "email", "copy"],
+      "description": "Write one blank template email per mapped moment for the {project} practice, in the clinician's warm, plain voice. Use bracketed placeholder fields for anything personal — [FIRST NAME], [APPOINTMENT DATE], [PORTAL LINK] — never an example person, never sample client data. State logistics accurately from the map, promise no outcome of therapy, and keep each email short. End the set with a one-line note telling the clinician these load into their own email tool and the office never sends on their behalf."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {audience} onboarding set",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["drafts"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review the map and every template against the Shaula honesty rules. Confirm all personal fields are bracketed placeholders with no sample client data anywhere, every logistic traces to the map or a [CHECK], no email promises a result of therapy, and the no-template rule for clinical outreach was kept. Hold delivery until the set is clean."
+    },
+    {
+      "ref": "load",
+      "title": "Human gate — clinician loads the templates: {audience}",
+      "assignee": "marketer",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["onboarding", "human-gate"],
+      "description": "HUMAN GATE: the clinician reads the clean set, fills every [CHECK] with their real logistics, and loads the templates into their own email system themselves. The agent never connects to the practice's email and never sends. Record which templates were adopted and the date."
+    }
+  ]
+}

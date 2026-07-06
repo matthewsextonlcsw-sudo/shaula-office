@@ -1,0 +1,26 @@
+{
+  "name": "shaula-remotion-social-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Renders a kinetic split-flap headline video for a therapy practice from its ALREADY-LINTED approved phrases. Honesty parity with the website: the composition renders only the phrases it is handed (engine-linted tokens) and invents nothing.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "build-props": "node scripts/build-props.mjs",
+    "studio": "remotion studio",
+    "render": "remotion render SplitFlapHeadline out/headline.mp4 --codec=h264 --props=props/northstar.json",
+    "render:northstar": "node scripts/build-props.mjs ../fixtures/northstar-denver/practice.json props/northstar.json && remotion render SplitFlapHeadline out/northstar.mp4 --codec=h264 --props=props/northstar.json",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.482",
+    "remotion": "4.0.482",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.0",
+    "typescript": "5.4.5"
+  }
+}

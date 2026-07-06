@@ -1,0 +1,56 @@
+{
+  "name": "faq-engine",
+  "description": "Practice FAQ page the way answer engines actually read one: collect the questions people really ask, answer them honestly in the clinician's voice, add FAQPage structured data, honesty-review, then a human publishes. No PHI. No invented questions, no invented answers — every answer grounded in the practice's real services, policies, and fees.",
+  "variables": ["focus", "project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "questions",
+      "title": "Collect real questions: {focus}",
+      "assignee": "strategist",
+      "priority": "medium",
+      "tags": ["faq", "strategy"],
+      "description": "Assemble the list of questions prospective clients actually ask the {project} practice about {focus}. Draw ONLY from real signal: the practice's inquiry inbox, the clinician's own list of questions they answer on calls, the services and policies the practice really offers, and common logistics (fees, insurance, scheduling, telehealth, cancellation). Do not invent demand — if you have no real signal for a question, leave it out or mark it [CHECK] for the clinician to confirm. Output a numbered list of questions, each with a one-line note on where it came from."
+    },
+    {
+      "ref": "answers",
+      "title": "Draft honest answers: {focus}",
+      "assignee": "blog",
+      "priority": "medium",
+      "dependencies": ["questions"],
+      "tags": ["faq", "content"],
+      "description": "Answer each collected question for the {project} practice in plain language, in the clinician's own voice. Every answer must be grounded in a real fact from the practice (its services, its fees, its policies) — mark anything you cannot verify [CHECK] for the clinician to fill in. No outcome promises, no efficacy claims, no invented numbers. Where a question is clinical (\"will therapy help me?\"), answer honestly about what the work involves and defer the clinical judgment to the clinician. Keep each answer short enough to read aloud in under thirty seconds."
+    },
+    {
+      "ref": "schema",
+      "title": "FAQPage structured data: {focus}",
+      "assignee": "marketer",
+      "priority": "medium",
+      "dependencies": ["answers"],
+      "tags": ["faq", "geo", "seo"],
+      "description": "Produce the FAQPage JSON-LD for the approved question-and-answer set, pulled verbatim from the drafted answers — never a reworded or upgraded version. Factual metadata only. Note where the block belongs on the {project} site and which page-level metadata (title, description) should change, using only facts from the answers themselves."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {focus} FAQ package",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["schema"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review the questions, answers, and structured data against the Shaula honesty rules. Confirm every question came from real signal or is marked [CHECK]. Confirm every answer states only verifiable practice facts, contains no outcome promise and no invented number, and that the JSON-LD matches the answers word for word. Hold publish until the package is clean."
+    },
+    {
+      "ref": "publish",
+      "title": "Human gate — clinician reviews and publishes: {focus} FAQ",
+      "assignee": "website",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["faq", "human-gate"],
+      "description": "HUMAN GATE: the clinician reads the clean FAQ, fills every [CHECK] with their own words, and approves. Only after that approval does the FAQ go onto the {project} site. The agent never publishes on its own. Record which questions went live and the date."
+    }
+  ]
+}

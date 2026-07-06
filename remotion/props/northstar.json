@@ -1,0 +1,11 @@
+{
+  "_comment": "Synthetic, engine-linted approved phrases ONLY (tagline/specialties/populations from practice.json), re-verified through engine/banned.py. No PHI. The video renders exactly these phrases and invents nothing.",
+  "phrases": [
+    "Therapy for the overextended.",
+    "burnout · anxiety · perfectionism",
+    "adults · graduate students · healthcare workers"
+  ],
+  "accentColor": "#5BE3C9",
+  "backgroundColor": "#07051C",
+  "practiceName": "North Star Counseling"
+}

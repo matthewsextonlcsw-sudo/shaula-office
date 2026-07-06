@@ -1,0 +1,7 @@
+# Shaula CVE constraints — applied at `uv sync` / pip install over the vendored Hermes deps.
+# Source: docs/SECURITY_AUDIT_hermes.md (19 CVEs @ commit 66a6b9c; none critical/RCE; optional/dev pkgs).
+# `>` forces resolution PAST the vulnerable pinned versions. Exact resolved versions are re-audited
+# at install (SUSPECT until install-tested — see docs/PHASE1_harden.md "Runtime-pending").
+aiohttp>3.13.3      # 12 advisories @ 3.13.3 (optional extra)
+PyJWT>2.12.1        # 4 advisories @ 2.12.1
+anthropic>0.86.0    # 2 advisories @ 0.86.0 (optional extra; local-low file-perms CVE)

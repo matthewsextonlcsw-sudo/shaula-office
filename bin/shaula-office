@@ -1,0 +1,663 @@
+#!/usr/bin/env python3
+"""shaula-office — serve the office.html front door as a REAL app.
+
+Static: cockpit/office.html + its assets. Live: POST /api/chat -> the therapist's
+own Vertex brain (via `bin/shaula chat -Q`). Localhost only.
+
+House-nothing: chat goes to the therapist's own Vertex (their BAA). This server
+stores nothing — no logs of message content, no DB.
+"""
+import http.server
+import json
+import os
+import pathlib
+import re
+import shutil
+import subprocess
+import threading
+import time
+import urllib.error
+import urllib.request
+import uuid
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+COCKPIT = ROOT / "cockpit"
+SHAULA = ROOT / "bin" / "shaula"
+SITES = ROOT / "sites"
+PORT = int(os.environ.get("SHAULA_OFFICE_PORT", "8800"))
+
+# wrangler (Cloudflare Pages CLI) — resolve an absolute path now so the deploy
+# works regardless of the nohup'd server's PATH. Homebrew default as the fallback.
+WRANGLER = shutil.which("wrangler") or "/opt/homebrew/bin/wrangler"
+
+# Google-native publish target (the plan: GCP, no Cloudflare, no Firebase).
+# The bucket is public at the bucket level (a one-time MWS host setup), so a
+# therapist's publish is a plain upload — they never touch an org policy.
+GCLOUD = shutil.which("gcloud") or "/opt/homebrew/bin/gcloud"
+GCS_BUCKET = os.environ.get("SHAULA_SITES_BUCKET", "")
+GCS_PROJECT = os.environ.get("SHAULA_GCP_PROJECT", "")
+
+# ---------------------------------------------------------------------------
+# Kanban / workflow wiring — the office DRIVES real work on the therapist's board.
+# ---------------------------------------------------------------------------
+# The board API is the dashboard's plugin API (localhost, session-token gated).
+# Single source of truth: the office stores no work state on disk — the board
+# owns it. We talk to :9121 (Shaula's dashboard), never the forbidden :9119.
+KANBAN_URL = os.environ.get("SHAULA_KANBAN_URL", "http://127.0.0.1:9121").rstrip("/")
+KANBAN_TOKEN = os.environ.get(
+    "SHAULA_KANBAN_TOKEN", os.environ.get("HERMES_DASHBOARD_SESSION_TOKEN", "")
+)
+KANBAN_PREFIX = "/api/plugins/kanban"
+TEMPLATES = ROOT / "workflows" / "templates"
+HERMES_HOME = pathlib.Path(
+    os.environ.get("HERMES_HOME", str(pathlib.Path.home() / ".shaula-home"))
+)
+BOARDS_DIR = HERMES_HOME / "kanban" / "boards"
+# A reviewer holds a finished package for the clinician by blocking the task
+# with a reason that starts with this marker (workflows/templates/weekly-blog.json).
+REVIEW_PREFIX = "review-required:"
+_TERMINAL = {"done", "blocked", "archived"}
+
+# In-memory cascade progress (board slug -> {phase, updated}). Not PHI, never
+# persisted; pending-approvals reads the board itself so it survives a restart.
+_RUNS: dict = {}
+_RUNS_LOCK = threading.Lock()
+
+
+def _kanban(method: str, path: str, body=None, timeout: int = 30):
+    """Call the board API with the office's session token. Returns (status, obj)."""
+    url = KANBAN_URL + KANBAN_PREFIX + path
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(url, data=data, method=method)
+    req.add_header("content-type", "application/json")
+    if KANBAN_TOKEN:
+        req.add_header("X-Hermes-Session-Token", KANBAN_TOKEN)
+        req.add_header("Authorization", f"Bearer {KANBAN_TOKEN}")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.status, json.loads(resp.read() or b"{}")
+    except urllib.error.HTTPError as e:
+        try:
+            return e.code, json.loads(e.read() or b"{}")
+        except Exception:  # noqa: BLE001
+            return e.code, {"detail": "?"}
+    except Exception as e:  # noqa: BLE001
+        return 0, {"error": str(e)[:300]}
+
+
+def _slugify(s: str, n: int = 24) -> str:
+    out = re.sub(r"[^a-z0-9-]+", "-", str(s).lower()).strip("-")
+    return (out[:n].strip("-")) or "topic"
+
+
+def _board_tasks(bd: dict) -> list:
+    """Flatten the column-grouped /board response to a flat task list."""
+    return [t for col in (bd or {}).get("columns", []) for t in (col.get("tasks") or [])]
+
+
+def _drive_cascade(board: str, max_secs: int = 600) -> None:
+    """Dispatch repeatedly until every task on the board is terminal.
+
+    One pass promotes/spawns a single layer; a DAG needs many passes. The
+    content lane is pure text, so tasks finish in seconds — a 5s tick drains a
+    weekly-blog run in well under a minute. The reviewer parks itself in
+    'blocked' (review-required); that IS terminal here — the clinician's okay
+    is what advances it.
+    """
+    deadline = time.time() + max_secs
+    while time.time() < deadline:
+        _kanban("POST", f"/dispatch?max=8&board={board}")
+        st, bd = _kanban("GET", f"/board?board={board}")
+        tasks = _board_tasks(bd)
+        if tasks and all(t.get("status") in _TERMINAL for t in tasks):
+            with _RUNS_LOCK:
+                _RUNS[board] = {"phase": "ready-for-approval", "updated": int(time.time())}
+            return
+        in_flight = sum(
+            1 for t in tasks if t.get("status") in ("running", "ready", "todo")
+        )
+        with _RUNS_LOCK:
+            _RUNS[board] = {"phase": f"working ({in_flight} in flight)",
+                            "updated": int(time.time())}
+        time.sleep(5)
+    with _RUNS_LOCK:
+        _RUNS[board] = {"phase": "timeout", "updated": int(time.time())}
+
+
+def run_workflow(template: str, topic: str, project: str) -> dict:
+    """Instantiate a workflow template on a fresh board and drive it to completion.
+
+    Each run gets its own board (one package per board) so approvals never
+    collide. Returns immediately; a daemon thread drives the dispatch cascade.
+    """
+    import sys
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from workflows.builder import instantiate, load_template_file  # noqa: PLC0415
+
+    name = _slugify(template or "weekly-blog")
+    tmpl_path = TEMPLATES / f"{name}.json"
+    if not tmpl_path.is_file():
+        return {"ok": False, "error": f"unknown workflow: {name}"}
+    tmpl = load_template_file(str(tmpl_path))
+    board = f"blog-{_slugify(topic)}-{uuid.uuid4().hex[:6]}"
+    res = instantiate(
+        tmpl, {"topic": topic, "project": project},
+        base_url=KANBAN_URL, session_token=KANBAN_TOKEN,
+        board=board, create_board=True, dispatch=True, dispatch_max=8,
+    )
+    with _RUNS_LOCK:
+        _RUNS[board] = {"phase": "working", "updated": int(time.time())}
+    threading.Thread(target=_drive_cascade, args=(board,), daemon=True).start()
+    return {"ok": True, "board": board, "created": res.get("created", [])}
+
+
+def pending_approvals() -> list:
+    """Every board holding a finished package for the clinician's okay.
+
+    A board qualifies when it has a 'blocked' task whose reason starts with the
+    review-required marker. The package = every task's full handoff summary on
+    that board (one run per board), so the okay-card shows the whole thing.
+    """
+    out = []
+    try:
+        boards = sorted(p.name for p in BOARDS_DIR.iterdir() if p.is_dir())
+    except Exception:  # noqa: BLE001
+        boards = []
+    for b in boards:
+        st, bd = _kanban("GET", f"/board?board={b}")
+        if st != 200:
+            continue
+        tasks = _board_tasks(bd)
+        gate = next(
+            (t for t in tasks
+             if t.get("status") == "blocked"
+             and (t.get("latest_summary") or "").lstrip().lower().startswith(REVIEW_PREFIX)),
+            None,
+        )
+        if not gate:
+            continue
+        package = []
+        for t in sorted(tasks, key=lambda x: x.get("created_at") or 0):
+            ts, td = _kanban("GET", f"/tasks/{t['id']}?board={b}")
+            full = ((td.get("task") or {}).get("latest_summary")) if ts == 200 else None
+            package.append({
+                "id": t["id"], "title": t.get("title"), "assignee": t.get("assignee"),
+                "status": t.get("status"), "summary": full or t.get("latest_summary") or "",
+            })
+        gs, gd = _kanban("GET", f"/tasks/{gate['id']}?board={b}")
+        verdict = (((gd.get("task") or {}).get("latest_summary")) if gs == 200
+                   else gate.get("latest_summary")) or ""
+        out.append({
+            "board": b, "task_id": gate["id"], "title": gate.get("title"),
+            "verdict": verdict, "package": package,
+        })
+    return out
+
+
+def _transition(board: str, task_id: str, status: str, summary=None) -> dict:
+    body: dict = {"status": status}
+    if summary:
+        body["summary"] = summary
+    st, d = _kanban("PATCH", f"/tasks/{task_id}?board={board}", body)
+    cur = (d.get("task") or {}).get("status")
+    return {"ok": st == 200 and cur == status, "status": cur, "detail": d.get("detail")}
+
+# Cloudflare Pages project names: lowercase alnum + single hyphens, <=58 chars,
+# no leading/trailing hyphen. Our convention: shaula-<slug>.
+_PAGES_URL_RE = re.compile(r"https://[a-z0-9.-]+\.pages\.dev")
+
+
+def _project_name(slug: str) -> str:
+    name = re.sub(r"[^a-z0-9-]+", "-", str(slug).lower()).strip("-")
+    return ("shaula-" + name)[:58].strip("-")
+
+
+def _safe_site_dir(slug: str):
+    """Resolve sites/<slug>/ and confirm it stays INSIDE the sites tree.
+
+    The slug can arrive raw from an unauthenticated caller (the localhost
+    ``POST /api/publish-run`` body). A ``../…`` slug must never let a publish
+    copy or deploy a directory from OUTSIDE ``sites/`` into a Cloud Build /
+    Cloud Run context (an exfil path). Returns the resolved dir, or ``None`` if
+    the slug escapes containment or the site isn't built yet — callers treat
+    both the same ("no built site"), so a probe can't distinguish them.
+    """
+    base = SITES.resolve()
+    target = (base / str(slug)).resolve()
+    if target != base and base not in target.parents:
+        return None
+    return target if target.is_dir() else None
+
+
+def build_site_from_survey(survey: dict) -> dict:
+    """survey dict -> finished static site in sites/<slug>/ (pure, no network).
+
+    Lazy import so a missing/broken engine never stops the chat server from
+    starting; the failure surfaces only on the website call that needs it.
+    """
+    import sys
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from engine.pipeline import build_site  # noqa: PLC0415
+    return build_site(survey)
+
+
+def deploy_site(slug: str) -> dict:
+    """Deploy sites/<slug>/ to Cloudflare Pages → live https://<project>.pages.dev.
+
+    ⚠ DIVERGENT / LEGACY publish path. The 100%-GCP plan publishes via Cloud Run
+    (`publish_site_run`, runbook §2) or the GCS marketing bucket (`publish_site_gcs`).
+    This Cloudflare Pages path predates that decision; it is KEPT (additive — still
+    works, nothing rips it out) but is NOT the plan-of-record. Prefer
+    `publish_site_run` for new work. Map of all three: docs/PUBLISH_RECONCILE.md.
+
+    Idempotent project create (tolerates 'already exists'), then a production
+    deploy on --branch main. Returns the canonical + unique deployment URLs.
+    Live deploy = a Matthew-gated action for a REAL practice; the demo (fake,
+    no PHI) is the only thing this server deploys unprompted.
+    """
+    site_dir = _safe_site_dir(slug)
+    if site_dir is None:
+        return {"ok": False, "error": f"no built site at sites/{slug}"}
+    project = _project_name(slug)
+    env = {**os.environ, "CI": "1"}  # non-interactive
+
+    # 1) Ensure the project exists (idempotent — ignore an 'already exists' error).
+    subprocess.run(
+        [WRANGLER, "pages", "project", "create", project, "--production-branch", "main"],
+        capture_output=True, text=True, timeout=120, env=env,
+    )
+
+    # 2) Production deploy. --commit-dirty suppresses the git-state prompt.
+    p = subprocess.run(
+        [WRANGLER, "pages", "deploy", str(site_dir),
+         "--project-name", project, "--branch", "main", "--commit-dirty=true"],
+        capture_output=True, text=True, timeout=420, env=env,
+    )
+    out = (p.stdout or "") + "\n" + (p.stderr or "")
+    if p.returncode != 0:
+        tail = out.strip().splitlines()[-8:]
+        return {"ok": False, "error": "wrangler deploy failed", "detail": "\n".join(tail),
+                "project": project}
+
+    urls = _PAGES_URL_RE.findall(out)
+    canonical = f"https://{project}.pages.dev"
+    # The unique per-deploy URL (https://<hash>.<project>.pages.dev) is live
+    # instantly; the canonical alias propagates a few seconds behind it.
+    preview = next((u for u in urls if u != canonical), urls[0] if urls else None)
+    return {"ok": True, "project": project, "url": canonical, "preview_url": preview}
+
+
+def publish_site_gcs(slug: str) -> dict:
+    """Upload sites/<slug>/ to the public marketing bucket -> live https URL.
+
+    The bucket is public at the bucket level (one-time host setup), so this is a
+    plain upload — no per-object ACL, no org-policy touch from the user's side.
+    Returns {ok, url} or {ok:false, error, detail, hint}. The hint translates the
+    most common failure (domain-restricted sharing) into plain language so the
+    office can show a human message instead of a stack trace.
+    """
+    site_dir = _safe_site_dir(slug)
+    if site_dir is None:
+        return {"ok": False, "error": f"no built site at sites/{slug}"}
+    p = subprocess.run(
+        [GCLOUD, "storage", "cp", "-r", str(site_dir), f"gs://{GCS_BUCKET}/",
+         "--project", GCS_PROJECT],
+        capture_output=True, text=True, timeout=300, env={**os.environ},
+    )
+    if p.returncode != 0:
+        detail = ((p.stdout or "") + "\n" + (p.stderr or "")).strip()
+        tail = "\n".join(detail.splitlines()[-6:])
+        hint = None
+        if "permitted customer" in detail or "412" in detail:
+            hint = ("Your Google is blocking public web pages. The website host "
+                    "needs public sharing switched on once before sites can go live.")
+        return {"ok": False, "error": "publish failed", "detail": tail, "hint": hint}
+    url = f"https://storage.googleapis.com/{GCS_BUCKET}/{slug}/index.html"
+    return {"ok": True, "url": url}
+
+
+def publish_site_run(slug: str, *, region: str = "us-central1",
+                     deploy: bool = True) -> dict:
+    """Publish sites/<slug>/ to Cloud Run — the proven runbook §2 path, reconciled.
+
+    Renders the nginx deploy context (`scripts/render_run_context.py` — the "tiny
+    nginx Dockerfile" the runbook describes but never generated) from the built
+    site, then `gcloud run deploy <svc> --source <ctx>`. This is the GCP-native
+    publish the 100%-GCP plan calls for; `deploy_site` (Cloudflare Pages) is the
+    legacy/divergent sibling kept beside it. Map: docs/PUBLISH_RECONCILE.md.
+
+    `deploy=False` renders the context and returns its path WITHOUT touching the
+    network — the build-only proof (mirrors `/api/website deploy:false`). A live
+    `gcloud run deploy` for a REAL practice is a Matthew-gated action.
+
+    Returns {ok, url, service, context} or {ok:false, error, detail, [context]}.
+    Marketing only — no PHI ever goes here.
+    """
+    if not re.fullmatch(r"[a-z]+-[a-z]+[0-9]+", region or ""):
+        return {"ok": False, "error": f"invalid region {region!r}"}
+    site_dir = _safe_site_dir(slug)
+    if site_dir is None:
+        return {"ok": False, "error": f"no built site at sites/{slug}"}
+
+    # Render the nginx Dockerfile context (the missing runbook §2 piece).
+    import sys
+    scripts_dir = str(ROOT / "scripts")
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+    try:
+        import render_run_context as _rc  # noqa: PLC0415
+        ctx = _rc.render_context(site_dir)
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "error": "could not render deploy context",
+                "detail": str(e)[:300]}
+
+    service = _project_name(slug)
+    if not deploy:
+        return {"ok": True, "built": True, "deployed": False,
+                "service": service, "context": str(ctx)}
+
+    # A --source deploy builds a container via Cloud Build first, so allow a long
+    # timeout (well over the GCS plain-upload budget).
+    p = subprocess.run(
+        [GCLOUD, "run", "deploy", service, "--source", str(ctx),
+         "--region", region, "--allow-unauthenticated",
+         "--project", GCS_PROJECT, "--quiet"],
+        capture_output=True, text=True, timeout=900, env={**os.environ},
+    )
+    out = ((p.stdout or "") + "\n" + (p.stderr or "")).strip()
+    if p.returncode != 0:
+        tail = "\n".join(out.splitlines()[-8:])
+        return {"ok": False, "error": "cloud run deploy failed",
+                "detail": tail, "service": service, "context": str(ctx)}
+    m = re.search(r"https://[a-z0-9.-]+\.run\.app", out)
+    return {"ok": True, "url": m.group(0) if m else None,
+            "service": service, "context": str(ctx), "deployed": True}
+
+
+def teardown_hosting(name: str = "", service: str = "", slug: str = "",
+                     region: str = "us-central1") -> dict:
+    """The office's 'unpublish' — tear down a published site's Google hosting.
+
+    Removes, in dependency order, the LB stack (``<name>-{fr,proxy,cert,um,be,
+    neg,ip}``), the Cloud Run ``service``, and the site's objects in the
+    marketing bucket (``slug``). Every delete is best-effort + idempotent: a
+    resource that is already absent counts as gone, never an error, so a partial
+    prior teardown re-runs cleanly. Public marketing only — no PHI anywhere.
+    """
+    steps: list = []
+
+    def _run(args, label):
+        p = subprocess.run([GCLOUD, *args, "--project", GCS_PROJECT, "-q"],
+                           capture_output=True, text=True, timeout=180, env={**os.environ})
+        err = ((p.stdout or "") + (p.stderr or "")).strip()
+        gone = "not found" in err.lower() or "was not found" in err.lower()
+        ok = p.returncode == 0 or gone
+        steps.append({"step": label, "ok": ok,
+                      "note": "already gone" if (gone and p.returncode != 0)
+                      else ("" if ok else (err.splitlines()[-1][:160] if err else "failed"))})
+
+    if name:
+        _run(["compute", "forwarding-rules", "delete", f"{name}-fr", "--global"], "forwarding-rule")
+        _run(["compute", "target-https-proxies", "delete", f"{name}-proxy", "--global"], "https-proxy")
+        _run(["compute", "ssl-certificates", "delete", f"{name}-cert", "--global"], "ssl-cert")
+        _run(["compute", "url-maps", "delete", f"{name}-um", "--global"], "url-map")
+        _run(["compute", "backend-services", "delete", f"{name}-be", "--global"], "backend-service")
+        _run(["compute", "network-endpoint-groups", "delete", f"{name}-neg", "--region", region], "neg")
+        # The IP releases asynchronously after the forwarding rule, so a single
+        # delete can race (the API briefly reports it gone while it lingers).
+        # Verify with describe — the source of truth — and retry until truly gone.
+        addr_ok = False
+        for _attempt in range(4):
+            subprocess.run([GCLOUD, "compute", "addresses", "delete", f"{name}-ip",
+                            "--global", "--project", GCS_PROJECT, "-q"],
+                           capture_output=True, text=True, timeout=120, env={**os.environ})
+            chk = subprocess.run([GCLOUD, "compute", "addresses", "describe", f"{name}-ip",
+                                  "--global", "--project", GCS_PROJECT],
+                                 capture_output=True, text=True, timeout=60, env={**os.environ})
+            if chk.returncode != 0:  # describe fails -> the address is really gone
+                addr_ok = True
+                break
+            time.sleep(8)
+        steps.append({"step": "address", "ok": addr_ok,
+                      "note": "" if addr_ok else "still present after retries"})
+    if service:
+        _run(["run", "services", "delete", service, "--region", region], "cloud-run")
+    if slug:
+        _run(["storage", "rm", "-r", f"gs://{GCS_BUCKET}/{slug}"], "gcs-objects")
+    return {"ok": all(s["ok"] for s in steps), "steps": steps}
+
+
+# Shaula's voice for the office chat (mirrors the cockpit's system prompt).
+_SHAULA_SYSTEM = (
+    "You are Shaula — the AI partner that runs a therapist's whole back office: admin, website, "
+    "blog, marketing, content, and research. You are capable, proactive, and genuinely helpful — "
+    "you draft, research, write, organize, and get things done. Honesty is HOW you work, never a "
+    "reason to refuse: you may absolutely write clinical and educational content and cite sources. "
+    "The one rule is accuracy — cite only REAL sources you actually have, and never fabricate "
+    "statistics, citations, testimonials, credentials, or outcomes. When you lack a verified source "
+    "or aren't sure, say so plainly and offer to look it up. You run inside the therapist's own "
+    "Google Workspace. Be warm, specific, useful, and concise."
+)
+
+
+def brain_reply(msg: str, history=None) -> str:
+    """Fast in-process reply via the cockpit's Vertex router (genai SDK) in Shaula's own
+    voice, carrying the conversation `history` so it can follow up instead of answering each
+    message cold. Honest Ollama fallback. Lazy import so a broken engine never stops serving.
+    The brain is env-configurable (SHAULA_VERTEX_SA / GOOGLE_CLOUD_PROJECT) — a real therapist
+    box points it at their own Vertex/BAA; locally it uses the dev SA like the cockpit chat."""
+    try:
+        import sys as _sys
+        if str(COCKPIT) not in _sys.path:
+            _sys.path.insert(0, str(COCKPIT))
+        import router  # cockpit/router.py — the "what LLM for what" decision, in-process
+        r = router.route("chat", msg, system=_SHAULA_SYSTEM, history=history)
+        return (r.get("text") or "").strip() or "(no reply from the office)"
+    except Exception as e:  # noqa: BLE001
+        return f"(couldn't reach the office: {type(e).__name__})"
+
+
+class Handler(http.server.SimpleHTTPRequestHandler):
+    def __init__(self, *a, **k):
+        super().__init__(*a, directory=str(COCKPIT), **k)
+
+    def _json(self, code, obj):
+        body = json.dumps(obj).encode()
+        self.send_response(code)
+        self.send_header("content-type", "application/json")
+        self.send_header("content-length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _read_json(self):
+        n = int(self.headers.get("content-length", 0) or 0)
+        return json.loads(self.rfile.read(n) or b"{}")
+
+    def do_POST(self):
+        path = self.path.rstrip("/")
+        if path == "/api/chat":
+            try:
+                body = self._read_json()
+            except Exception:  # noqa: BLE001
+                return self._json(400, {"error": "bad request"})
+            msg = str(body.get("message", "")).strip()[:2000]
+            if not msg:
+                return self._json(400, {"error": "empty message"})
+            hist = body.get("history")
+            hist = hist[-8:] if isinstance(hist, list) else None   # last 8 turns of context
+            return self._json(200, {"reply": brain_reply(msg, hist)})
+
+        if path == "/api/website":
+            # Body: {slug} deploys a pre-built site; {survey} builds then deploys.
+            # deploy:false builds only (proves the build half without going live).
+            try:
+                data = self._read_json()
+            except Exception:  # noqa: BLE001
+                return self._json(400, {"error": "bad request"})
+            do_deploy = data.get("deploy", True)
+            slug = str(data.get("slug", "")).strip()
+            survey = data.get("survey")
+            built = None
+            try:
+                if survey:
+                    built = build_site_from_survey(survey)
+                    slug = built["slug"]
+                elif not slug:
+                    return self._json(400, {"error": "need a slug or a survey"})
+            except Exception as e:  # noqa: BLE001
+                return self._json(422, {"error": "build failed", "detail": str(e)[:500]})
+
+            if not do_deploy:
+                return self._json(200, {"ok": True, "built": True, "slug": slug,
+                                        "deployed": False})
+            result = deploy_site(slug)
+            if not result.get("ok"):
+                return self._json(502, {**result, "slug": slug})
+            return self._json(200, {**result, "slug": slug, "deployed": True,
+                                    "built": bool(built)})
+
+        if path == "/api/publish":
+            # Body: {slug}. Uploads a built site to the public Google bucket and
+            # returns the live URL. Marketing only — no PHI ever goes here.
+            try:
+                data = self._read_json()
+            except Exception:  # noqa: BLE001
+                return self._json(400, {"error": "bad request"})
+            slug = str(data.get("slug", "")).strip()
+            if not slug:
+                return self._json(400, {"error": "need a slug"})
+            res = publish_site_gcs(slug)
+            return self._json(200 if res.get("ok") else 502, res)
+
+        if path == "/api/publish-run":
+            # Body: {slug, deploy?, region?}. Publishes a built site to Cloud Run
+            # (the GCP-native runbook §2 path) via a rendered nginx context.
+            # deploy:false renders the context only (no network). The Cloudflare
+            # path (/api/website) is the legacy/divergent sibling. No PHI ever.
+            try:
+                data = self._read_json()
+            except Exception:  # noqa: BLE001
+                return self._json(400, {"error": "bad request"})
+            slug = str(data.get("slug", "")).strip()
+            if not slug:
+                return self._json(400, {"error": "need a slug"})
+            do_deploy = data.get("deploy", True)
+            region = str(data.get("region", "")).strip() or "us-central1"
+            res = publish_site_run(slug, region=region, deploy=do_deploy)
+            return self._json(200 if res.get("ok") else 502, res)
+
+        if path == "/api/unpublish":
+            # Body: {name?, service?, slug?, region?}. Tears down a published
+            # site's Google hosting (LB stack + Cloud Run service + bucket
+            # objects). Idempotent. Marketing only — no PHI ever lived here.
+            try:
+                data = self._read_json()
+            except Exception:  # noqa: BLE001
+                return self._json(400, {"error": "bad request"})
+            name = str(data.get("name", "")).strip()
+            service = str(data.get("service", "")).strip()
+            slug = str(data.get("slug", "")).strip()
+            region = str(data.get("region", "")).strip() or "us-central1"
+            if not (name or service or slug):
+                return self._json(400, {"error": "need name, service, or slug to tear down"})
+            res = teardown_hosting(name=name, service=service, slug=slug, region=region)
+            return self._json(200 if res.get("ok") else 502, res)
+
+        if path == "/api/run":
+            # Body: {topic, project?, template?}. Instantiates the workflow on a
+            # fresh board and drives it; the finished package lands in the
+            # approval feed (GET /api/pending-approvals). No content goes live —
+            # the clinician's okay is a separate, gated step.
+            try:
+                data = self._read_json()
+            except Exception:  # noqa: BLE001
+                return self._json(400, {"error": "bad request"})
+            topic = str(data.get("topic", "")).strip()[:200]
+            if not topic:
+                return self._json(400, {"error": "need a topic"})
+            project = (str(data.get("project", "")).strip() or "Cedar & Sage")[:80]
+            template = str(data.get("template", "")).strip() or "weekly-blog"
+            if not KANBAN_TOKEN:
+                return self._json(503, {"error": "office is not wired to the board "
+                                        "(set SHAULA_KANBAN_TOKEN to the dashboard token)"})
+            try:
+                res = run_workflow(template, topic, project)
+            except Exception as e:  # noqa: BLE001
+                return self._json(502, {"error": "could not start workflow",
+                                        "detail": str(e)[:400]})
+            return self._json(200 if res.get("ok") else 400, res)
+
+        if path in ("/api/approve", "/api/reject"):
+            try:
+                data = self._read_json()
+            except Exception:  # noqa: BLE001
+                return self._json(400, {"error": "bad request"})
+            board = str(data.get("board", "")).strip()
+            task_id = str(data.get("task_id", "")).strip()
+            if not board or not task_id:
+                return self._json(400, {"error": "need board and task_id"})
+            if path == "/api/approve":
+                return self._json(200, _transition(
+                    board, task_id, "done",
+                    summary="Approved by clinician via the office."))
+            return self._json(200, _transition(board, task_id, "archived"))
+
+        self.send_error(404)
+
+    def do_GET(self):
+        route = self.path.split("?")[0].rstrip("/")
+        if route == "/api/pending-approvals":
+            # The approval feed: every finished package waiting on the clinician's
+            # okay. Reads the boards directly — no content leaves the office.
+            try:
+                return self._json(200, {"pending": pending_approvals()})
+            except Exception as e:  # noqa: BLE001
+                return self._json(502, {"error": "could not read the board",
+                                        "detail": str(e)[:400], "pending": []})
+        if route == "/api/run-status":
+            # Live state of in-flight workflow runs (drive thread updates _RUNS).
+            with _RUNS_LOCK:
+                return self._json(200, {"runs": dict(_RUNS)})
+        if route == "/sites" or self.path.startswith("/sites/"):
+            return self._serve_site()
+        if self.path in ("/", ""):
+            self.path = "/office.html"
+        return super().do_GET()
+
+    def _serve_site(self):
+        # Serve a built marketing site from ROOT/sites/<...> (public content, no PHI).
+        # Sandboxed to SITES with a traversal guard — nothing above sites is reachable.
+        rel = self.path.split("?", 1)[0]
+        rel = rel[len("/sites/"):] if rel.startswith("/sites/") else ""
+        target = (SITES / rel).resolve()
+        base = SITES.resolve()
+        if target != base and base not in target.parents:
+            return self.send_error(403)
+        if target.is_dir():
+            target = target / "index.html"
+        if not target.is_file():
+            return self.send_error(404)
+        try:
+            data = target.read_bytes()
+        except OSError:
+            return self.send_error(404)
+        self.send_response(200)
+        self.send_header("content-type", self.guess_type(str(target)))
+        self.send_header("content-length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def log_message(self, *a):  # quiet — no request logging (no message content on disk)
+        pass
+
+
+def main():
+    print(f"Shaula office  →  http://127.0.0.1:{PORT}/   (serving {COCKPIT})")
+    with http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Handler) as httpd:
+        httpd.serve_forever()
+
+
+if __name__ == "__main__":
+    main()

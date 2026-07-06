@@ -1,0 +1,47 @@
+{
+  "name": "reputation-engine",
+  "description": "Draft a public reply to a public review the compliant way: never state or imply that anyone is or was a client, never discuss care, respond warmly to what is public, invite the conversation offline. Honesty-reviewed, then a human posts. No PHI — the input is the public review text only.",
+  "variables": ["review_text", "project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "assess",
+      "title": "Assess the public review",
+      "assignee": "strategist",
+      "priority": "high",
+      "tags": ["reputation", "strategy"],
+      "description": "Read the public review text: \"{review_text}\". Identify ONLY what can be addressed in public: the sentiment, any factual statement about logistics (hours, location, responsiveness, fees) that the {project} practice can speak to generally, and anything that must NOT be engaged (clinical detail, identity, care specifics). Confidentiality rule, absolute: the reply may never confirm or deny that the reviewer is or was a client, and may never reference appointments, diagnoses, or any detail of care — even if the reviewer volunteered it. Output: sentiment, the addressable points, the off-limits points, and whether this review needs the clinician personally before any reply."
+    },
+    {
+      "ref": "draft",
+      "title": "Draft the public reply",
+      "assignee": "marketer",
+      "priority": "high",
+      "dependencies": ["assess"],
+      "tags": ["reputation", "copy"],
+      "description": "Write one short public reply for the {project} practice following the assessment exactly. Warm, professional, and generic about care: thank the person for the feedback, speak only to general practice policies and logistics, never confirm or deny a care relationship, never repeat clinical detail from the review, and invite them to continue the conversation through the practice's contact channel. No defensiveness, no argument with the reviewer's account, no outcome claims about therapy. Offer one alternate phrasing so the clinician can choose the voice that sounds like them."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty + confidentiality review: reply",
+      "assignee": "reviewer",
+      "priority": "urgent",
+      "dependencies": ["draft"],
+      "requires_review": true,
+      "tags": ["quality", "reputation"],
+      "description": "Review both reply drafts against the Shaula honesty rules AND the confidentiality rule: reject any wording that confirms or implies a care relationship, references any detail of care, argues with the reviewer, or makes a claim about results. Confirm the reply stays within general policies and public logistics. Hold posting until a draft is clean."
+    },
+    {
+      "ref": "post",
+      "title": "Human gate — clinician approves and posts the reply",
+      "assignee": "marketer",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["reputation", "human-gate"],
+      "description": "HUMAN GATE: the clinician reads the clean reply, adjusts it into their own words, and posts it themselves on the review platform. The agent never posts a reply. If the assessment flagged the review as needing the clinician personally, they decide whether to reply at all. Record the platform and date of any posted reply — never the reviewer's identity."
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# shaula-board — run the Shaula BOARD (Hermes kanban dashboard + its embedded
+# dispatcher) on :9121. This is the office's single source of work-state truth.
+#
+# ── DURABLE BRAIN (the whole point of this launcher) ───────────────────────────
+# The brain is the therapist's own Vertex (their BAA). Hermes authenticates to it
+# with a SHORT-LIVED gcloud access token in GOOGLEAPIS_API_KEY (~1h TTL). A
+# long-running dashboard mints that token ONCE at launch — so an hour later every
+# worker its dispatcher spawns inherits an EXPIRED token and dies:
+#
+#     HTTP 401 … "ACCESS_TOKEN_EXPIRED" → worker exits without kanban_complete
+#     → task → blocked → the whole board stalls.
+#
+# The fix: export HERMES_BIN pointing at bin/shaula. The dispatcher launches each
+# worker through that shim (hermes_cli/kanban_db.py:_resolve_hermes_argv honors
+# $HERMES_BIN), and bin/shaula RE-MINTS a fresh SA token immediately before exec'ing
+# the real hermes. Every worker therefore authenticates with a token minted seconds
+# before its brain call — the 1h TTL stops mattering. No vendor edit required.
+#
+# CRITICAL: this launch must NOT be routed through bin/shaula. bin/shaula reassigns
+# HERMES_BIN to the real hermes binary internally; because the var is already exported
+# here, that reassignment would propagate to the dashboard and defeat the per-worker
+# re-mint. We mint the dashboard's own token inline (below) and exec the real hermes
+# directly, leaving HERMES_BIN=bin/shaula intact for the dispatcher.
+#
+# Usage:
+#   HERMES_DASHBOARD_SESSION_TOKEN=<token> bin/shaula-board        # foreground
+#   SHAULA_KANBAN_TOKEN=<token>            bin/shaula-board        # same (alias)
+#   bin/shaula-board --port 9121                                   # extra hermes args pass through
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HERMES="$ROOT/vendor/hermes/.venv-shaula/bin/hermes"
+[ -x "$HERMES" ] || { echo "shaula-board: hermes not installed at $HERMES" >&2; exit 1; }
+
+export HERMES_HOME="${HERMES_HOME:-$HOME/.shaula-home}"
+PORT="${SHAULA_BOARD_PORT:-9121}"
+
+# The office authenticates to the board with this session token. Accept either the
+# canonical Hermes name or the office's SHAULA_KANBAN_TOKEN alias.
+TOKEN="${HERMES_DASHBOARD_SESSION_TOKEN:-${SHAULA_KANBAN_TOKEN:-}}"
+[ -n "$TOKEN" ] || {
+  echo "shaula-board: set HERMES_DASHBOARD_SESSION_TOKEN (or SHAULA_KANBAN_TOKEN) to the office's board token" >&2
+  exit 1
+}
+export HERMES_DASHBOARD_SESSION_TOKEN="$TOKEN"
+
+# ── The durable-brain hook ─────────────────────────────────────────────────────
+# Dispatcher spawns workers via this shim → each re-mints a fresh Vertex token.
+export HERMES_BIN="$ROOT/bin/shaula"
+
+# ── Mint the dashboard process's own token (best-effort) ───────────────────────
+# The dashboard itself does not call the brain (workers do), but keep a fresh token
+# in its env for any dashboard-side use. Mirrors bin/shaula's SA-first mint block.
+if command -v gcloud >/dev/null 2>&1; then
+  SA_KEY="${SHAULA_SA_KEY:-$HOME/.config/gcloud/veterancheck-vertex-key.json}"
+  if [ -f "$SA_KEY" ]; then
+    SA_EMAIL="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("client_email",""))' "$SA_KEY" 2>/dev/null || true)"
+    if [ -n "${SA_EMAIL:-}" ]; then
+      gcloud auth list --format='value(account)' 2>/dev/null | grep -qxF "$SA_EMAIL" \
+        || gcloud auth activate-service-account --key-file="$SA_KEY" --quiet >/dev/null 2>&1 || true
+      TOKEN_VAL="$(gcloud auth print-access-token --account="$SA_EMAIL" 2>/dev/null || true)"
+      if [ -n "$TOKEN_VAL" ]; then
+        export GOOGLEAPIS_API_KEY="$TOKEN_VAL"
+        export GOOGLE_APPLICATION_CREDENTIALS="$SA_KEY"
+        export SHAULA_BRAIN="vertex:${SHAULA_GCP_PROJECT:-unset} (sa)"
+      fi
+    fi
+  fi
+fi
+
+echo "shaula-board: starting board on :$PORT  (HERMES_HOME=$HERMES_HOME, workers re-mint via $HERMES_BIN)"
+exec "$HERMES" dashboard --port "$PORT" --no-open --skip-build "$@"

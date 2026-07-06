@@ -1,0 +1,56 @@
+{
+  "name": "content-calendar-engine",
+  "description": "Plan a month of honest content from real demand signal: read what people actually ask and search for, lay out a four-week calendar of topics the practice can genuinely speak to, brief each slot, honesty-review, then the clinician adopts the plan. Feeds weekly-blog and growth-engine. No PHI, no invented search numbers.",
+  "variables": ["period", "project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "signal",
+      "title": "Read the real signal: {period}",
+      "assignee": "strategist",
+      "priority": "medium",
+      "tags": ["strategy", "calendar"],
+      "description": "Gather the REAL demand signal available to the {project} practice for {period}: Search Console queries if attached, questions from the inquiry inbox, the clinician's seed list, seasonal moments that genuinely matter to the practice's clients (school terms, holidays, insurance cycles), and which existing essays already answer what. Invent no search volume and no trend — if a signal source is empty, say so. Output a short list of observed signals, each with its source named."
+    },
+    {
+      "ref": "calendar",
+      "title": "Draft the {period} calendar",
+      "assignee": "strategist",
+      "priority": "medium",
+      "dependencies": ["signal"],
+      "tags": ["strategy", "calendar"],
+      "description": "From the observed signal only, lay out a four-week content calendar for the {project} practice: one primary essay topic per week with its target query and the reason it earned the slot, plus optional light slots (a teaser, an FAQ addition) where the signal supports them. Only topics the practice can speak to from real experience and real services. Mark any slot that depends on a fact the clinician must confirm with [CHECK]. State plainly which signals were too thin to plan on."
+    },
+    {
+      "ref": "briefs",
+      "title": "One-line briefs for each slot: {period}",
+      "assignee": "blog",
+      "priority": "medium",
+      "dependencies": ["calendar"],
+      "tags": ["content", "calendar"],
+      "description": "For each calendar slot, write a two-to-three-sentence brief: the angle, the reader it serves, and the one thing the piece must say honestly. These briefs are the handoff into weekly-blog or growth-engine runs — keep each one concrete enough that a writer could start tomorrow. No efficacy claims, no invented numbers."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {period} calendar",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["briefs"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review the calendar and briefs against the Shaula honesty rules. Confirm every topic traces to a named real signal, no slot carries an invented number or an outcome promise, and thin-signal admissions were kept, not papered over. Hold adoption until the plan is clean."
+    },
+    {
+      "ref": "adopt",
+      "title": "Human gate — clinician adopts the {period} plan",
+      "assignee": "strategist",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["calendar", "human-gate"],
+      "description": "HUMAN GATE: the clinician reads the clean calendar, cuts or swaps any slot, fills every [CHECK], and adopts the plan. Only adopted slots become weekly-blog or growth-engine runs. The agent never starts a content run from an unadopted plan. Record which slots were adopted and which were cut."
+    }
+  ]
+}

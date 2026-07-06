@@ -1,0 +1,85 @@
+{
+  "name": "shaula-desktop",
+  "productName": "Shaula",
+  "version": "0.1.0",
+  "description": "Shaula — your free, house-nothing AI office. Runs local; nothing leaves your machine.",
+  "private": true,
+  "license": "MIT",
+  "main": "main.js",
+  "repository": "https://github.com/matthewsextonlcsw-sudo/shaula-office",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "fetch-python": "node scripts/fetch-python.mjs",
+    "dist": "node scripts/fetch-python.mjs && electron-builder --publish never",
+    "dist:mac": "node scripts/fetch-python.mjs && electron-builder --mac --publish never",
+    "dist:win": "node scripts/fetch-python.mjs win32-x64 && electron-builder --win --publish never",
+    "dist:linux": "node scripts/fetch-python.mjs linux-x64 && electron-builder --linux --publish never",
+    "release": "node scripts/fetch-python.mjs && electron-builder --publish always"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "org.shaula.office",
+    "productName": "Shaula",
+    "files": [
+      "main.js",
+      "preload.js",
+      "firstrun.html"
+    ],
+    "extraResources": [
+      {
+        "from": "../cockpit",
+        "to": "cockpit",
+        "filter": [
+          "**/*",
+          "!__pycache__"
+        ]
+      },
+      {
+        "from": "../engine",
+        "to": "engine",
+        "filter": [
+          "**/*",
+          "!__pycache__"
+        ]
+      },
+      {
+        "from": "vendor/python",
+        "to": "python",
+        "filter": [
+          "**/*",
+          "!**/__pycache__/**"
+        ]
+      }
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "publish": [
+      {
+        "provider": "github"
+      }
+    ]
+  }
+}

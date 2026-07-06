@@ -1,0 +1,50 @@
+# secrets / credentials — NEVER commit
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p8
+application_default_credentials.json
+service-account*.json
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# node
+node_modules/
+
+# generated sites / local artifacts (never PHI in repo regardless)
+sites/
+receipts/
+published/
+.svc-state/
+*.local
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+
+# local Hermes install venv (never commit)
+.venv*/
+vendor/hermes/.venv*/
+
+# board-research scratch clones (study only — never vendored)
+_board-research/
+
+# terraform local state (no backend yet — state stays on this machine)
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/terraform.tfstate*
+infra/tfplan
+
+# pytest scratch
+.pytest-cache/
+.gstack/
+
+# archived old/duplicate Shaula trees — kept on disk, NEVER committed (790M, nested .git dirs; see _archive/*/README.md)
+_archive/

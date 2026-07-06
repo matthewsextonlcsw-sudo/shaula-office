@@ -1,0 +1,5 @@
+name: google-vertex-provider
+kind: model-provider
+version: 1.0.0
+description: Google Vertex AI (Gemini) under the therapist's own Google Cloud BAA — house-nothing. vertexai-only; consumer api_key path banned.
+author: Shaula (MWS)

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Portrait placeholder — upload a headshot">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4EFE6"/>
+      <stop offset="1" stop-color="#E7DFD0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#bg)"/>
+  <!-- abstract portrait silhouette -->
+  <circle cx="400" cy="400" r="130" fill="#C9BCA6"/>
+  <path d="M210 760 C 210 600, 320 540, 400 540 C 480 540, 590 600, 590 760 Z" fill="#C9BCA6"/>
+  <!-- thin talon-gold frame accents -->
+  <line x1="80" y1="80" x2="200" y2="80" stroke="#C8A35A" stroke-width="2"/>
+  <line x1="80" y1="80" x2="80" y2="200" stroke="#C8A35A" stroke-width="2"/>
+  <line x1="720" y1="920" x2="600" y2="920" stroke="#C8A35A" stroke-width="2"/>
+  <line x1="720" y1="920" x2="720" y2="800" stroke="#C8A35A" stroke-width="2"/>
+  <text x="400" y="880" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="34" fill="#5C6660">Upload a headshot</text>
+  <text x="400" y="922" text-anchor="middle" font-family="-apple-system, Arial, sans-serif" font-size="18" letter-spacing="3" fill="#8A8478">ASSETS / PLACEHOLDER-HEADSHOT</text>
+</svg>

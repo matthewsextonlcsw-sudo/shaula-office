@@ -1,0 +1,102 @@
+{
+  "_comment": "DEMO / FAKE therapist data for the website-fill engine. Fictional person, fictional practice, placeholder license numbers and contact info. Covers every data {{token}} in FILL_MANIFEST.md §1. Not a real clinician; do not contact.",
+
+  "owner_name": "Jordan Avery",
+  "owner_first_name": "Jordan",
+  "credential": "LCSW",
+  "credential_full": "Licensed Clinical Social Worker",
+
+  "business_name": "Cedar & Sage Therapy",
+  "tagline": "Steady work for anxious, overwhelmed adults.",
+
+  "practice_model": "Out-of-network",
+  "payment_model": "Out-of-network, no insurance billed",
+  "payment_model_short": "out-of-network",
+
+  "specialties": "anxiety, trauma, life transitions",
+  "populations": "adults, young professionals, healthcare and first-responder clients",
+  "modalities": "CBT, ACT, EMDR",
+  "outcome_measures": "GAD-7 and PCL-5",
+
+  "method_name": "How the work works",
+  "method_acronym": "",
+  "signature_method_name": "The GROUND Method (authored only with LLM enrichment; the no-LLM floor presents a generic, evidence-informed process)",
+  "program_name": "The Steady Work",
+  "program_duration": "12 to 16 weeks",
+
+  "location": "Austin, TX",
+  "service_areas": "Texas & New Mexico",
+  "office_detail": "Suite 220",
+  "address_line1": "1100 Guadalupe St, Suite 220",
+  "address_line2": "Austin, TX 78701",
+  "address_full": "1100 Guadalupe St, Suite 220, Austin, TX 78701",
+
+  "phone": "512-555-0147",
+  "email": "hello@cedarsagetherapy.com",
+  "education": "MSW, University of Texas at Austin, 2013",
+  "founded_date": "2020",
+
+  "license_1_label": "TX License",
+  "license_1_value": "#LCSW-00000 (placeholder) — 2016",
+  "license_2_label": "NM License",
+  "license_2_value": "#NM-00000 (placeholder) — 2021",
+
+  "credential_line_1": "TX LCSW · #LCSW-00000 (placeholder)",
+  "credential_line_2": "NM LCSW · #NM-00000 (placeholder)",
+  "credential_line_3": "MSW · UT Austin · 2013",
+
+  "session_fee": "$185",
+  "session_fee_amount": "185",
+  "session_length": "50-minute",
+  "cadence": "Weekly",
+  "cancellation_policy": "48-hour cancellation policy",
+  "superbill_policy": "Monthly superbill provided on request for out-of-network reimbursement",
+  "sliding_scale_policy": "A small number of reduced-fee slots are reserved each year and fill quickly.",
+  "consult_length": "20-minute",
+  "response_time": "within two business days",
+  "availability_status": "Now welcoming new clients",
+  "location_field_label": "State",
+
+  "crisis_line_1_label": "Crisis Text Line",
+  "crisis_line_1_number": "Text HOME to 741741",
+  "crisis_line_2_label": "Texas 24/7 Mental Health Line",
+  "crisis_line_2_number": "1-800-273-8255",
+
+  "hero_video_alt": "Two hawks in flight at sunrise",
+  "current_year": "2026",
+
+  "background_summary": "more than a decade across community mental health, a hospital trauma service, and an employee-assistance program",
+  "career_history": "2013-2016 community mental health center (clinician); 2016-2019 hospital-based trauma and acute care service (clinical social worker); 2019-2020 employee-assistance / first-responder program (senior clinician); 2020-present founded Cedar & Sage Therapy",
+
+  "career": [
+    {
+      "years": "2013 – 2016",
+      "org": "Community Mental Health Center",
+      "role": "Clinician",
+      "desc": "Frontline outpatient care across mood, anxiety, and crisis presentations — the volume that teaches you to assess fast and build trust faster."
+    },
+    {
+      "years": "2016 – 2019",
+      "org": "Hospital Trauma & Acute Care Service",
+      "role": "Clinical Social Worker",
+      "desc": "Bedside work with patients and families in the worst hours of their lives, where steadiness matters more than any single technique."
+    },
+    {
+      "years": "2019 – 2020",
+      "org": "Employee-Assistance & First-Responder Program",
+      "role": "Senior Clinician",
+      "desc": "Short-term, high-stakes work with police, fire, and EMS — people who do not trust easily and do not have time to waste."
+    },
+    {
+      "years": "2020 – present",
+      "org": "Cedar & Sage Therapy",
+      "role": "Founder · Private Practice",
+      "desc": "Private practice serving anxiety, trauma, and life transitions. Licensed for Texas & New Mexico."
+    }
+  ],
+
+  "upload": "upload",
+
+  "ai_disclosure": "Created with AI assistance from Shaula. Reviewed and approved by Jordan Avery, LCSW before publication.",
+  "inquiry_endpoint": ""
+}

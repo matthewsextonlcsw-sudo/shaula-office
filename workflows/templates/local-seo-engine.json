@@ -1,0 +1,56 @@
+{
+  "name": "local-seo-engine",
+  "description": "Get the practice found where people actually look: audit its real off-site presence (Google Business Profile, therapist directories, maps), draft honest profile copy from verified practice facts, keep name-address-phone consistent everywhere, honesty-review, then a human applies each change in their own accounts. No PHI, no invented rankings or traffic numbers.",
+  "variables": ["service_area", "project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "audit",
+      "title": "Off-site presence audit: {service_area}",
+      "assignee": "strategist",
+      "priority": "medium",
+      "tags": ["local", "seo", "strategy"],
+      "description": "Inventory the {project} practice's real off-site presence for {service_area}: which profiles exist (Google Business Profile, Psychology Today and peer directories, maps listings, insurance directories), what each currently says, and where the practice's name, address, phone, and hours disagree with each other. Work ONLY from what you can actually observe or what the clinician supplied — mark every unknown [CHECK] rather than guessing. Invent no ranking, no traffic figure, no competitor claim. Output: the profile inventory, the inconsistency list, and the gaps worth filling."
+    },
+    {
+      "ref": "profiles",
+      "title": "Honest profile copy: {service_area}",
+      "assignee": "marketer",
+      "priority": "medium",
+      "dependencies": ["audit"],
+      "tags": ["local", "copy"],
+      "description": "Draft the profile copy the audit says needs work: the Google Business description, the directory bio, and the services blurb for the {project} practice in {service_area}. Accurate description of who the clinician is, who they see, and how the practice works — no superlatives, no comparisons to other providers, no outcome promises. Use the same name, address, phone, and hours everywhere, exactly as the audit verified them. Mark anything unverified [CHECK]."
+    },
+    {
+      "ref": "schema",
+      "title": "Local structured data: {service_area}",
+      "assignee": "marketer",
+      "priority": "medium",
+      "dependencies": ["profiles"],
+      "tags": ["local", "geo", "seo"],
+      "description": "Produce the local-business JSON-LD for the {project} practice site from the verified facts only — name, address, phone, hours, service area, and the services the practice really offers. Every field must match the audited profile copy word for word. Note where on the site the block belongs. No invented review counts, no aggregate ratings the practice does not actually hold."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {service_area} presence package",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["schema"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review the audit, profile copy, and structured data against the Shaula honesty rules. Confirm every stated fact traces to the audit or a clinician-supplied fact, name-address-phone is identical across every draft, unknowns stayed [CHECK] rather than guessed, and no superlative or invented figure appears anywhere. Hold application until the package is clean."
+    },
+    {
+      "ref": "apply",
+      "title": "Human gate — clinician applies the changes: {service_area}",
+      "assignee": "marketer",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["local", "human-gate"],
+      "description": "HUMAN GATE: the clinician (or their delegate) signs into each platform themselves and applies the approved copy — the agent never edits an external account. Fill every [CHECK] before applying. Record which profiles were updated and the date, so the next audit starts from truth."
+    }
+  ]
+}

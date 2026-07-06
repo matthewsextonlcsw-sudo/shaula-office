@@ -1,0 +1,47 @@
+{
+  "name": "practice-forms-engine",
+  "description": "Starting drafts of practice paperwork — cancellation policy, fee agreement, telehealth consent, office policies — written in plain language from the practice's own real policies, honesty-reviewed, and handed to the clinician to finalize with their attorney where required. Blank documents only, never legal advice, never a client's information.",
+  "variables": ["form_type", "project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "outline",
+      "title": "Outline the document: {form_type}",
+      "assignee": "strategist",
+      "priority": "medium",
+      "tags": ["forms", "strategy"],
+      "description": "Outline what a {form_type} for the {project} practice must cover, drawn from the practice's own real policies: the sections, the decisions the clinician has already made (fees, notice windows, communication channels), and every point where a policy is unknown — marked [CHECK] for the clinician to supply, never assumed. State plainly at the top of the outline that this produces a STARTING DRAFT the clinician finalizes, with their attorney's review where their situation requires it, and that nothing here is legal advice."
+    },
+    {
+      "ref": "draft",
+      "title": "Plain-language draft: {form_type}",
+      "assignee": "blog",
+      "priority": "medium",
+      "dependencies": ["outline"],
+      "tags": ["forms", "documents"],
+      "description": "Write the {form_type} draft for the {project} practice following the outline exactly: plain language a client can actually read, the practice's real policies stated accurately, bracketed placeholder fields for anything personal — [CLIENT NAME], [DATE] — and every unknown policy left as its [CHECK]. No example client, no sample signatures, no legal citations you cannot verify, and no language presenting the draft as reviewed or approved by a lawyer. Keep the starting-draft notice from the outline at the top of the document."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {form_type} draft",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["draft"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review the outline and draft against the Shaula honesty rules. Confirm the starting-draft / not-legal-advice notice is present and prominent, every stated policy traces to the outline or a [CHECK], all personal fields are blank placeholders, and no wording implies attorney review that has not happened. Hold delivery until the draft is clean."
+    },
+    {
+      "ref": "adopt",
+      "title": "Human gate — clinician finalizes {form_type}",
+      "assignee": "strategist",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["forms", "human-gate"],
+      "description": "HUMAN GATE: the clinician reads the clean draft, fills every [CHECK] with their real policies, and finalizes it — taking it to their attorney where their situation requires legal review. The office never presents a draft as final and never puts a document in front of a client. Record which document was adopted and the date."
+    }
+  ]
+}

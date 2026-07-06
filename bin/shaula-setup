@@ -1,0 +1,291 @@
+#!/usr/bin/env bash
+# shaula-setup — the startup walkthrough: from a fresh clone to a running Shaula.
+#
+# Two brain tiers (DECISIONS D13), pick one (or run again later for the other):
+#
+#   --local            The free, offline tier. Everything runs on this machine
+#                      via Ollama; nothing leaves the box, no vendor, no account.
+#   --cloud PROJECT_ID The therapist's OWN Google Cloud project: Gemini on THEIR
+#                      Vertex, under THEIR Google BAA, on THEIR billing. Shaula
+#                      (and MWS) never sees the traffic. This script never runs
+#                      billable commands for you — it prints them for you to run.
+#
+# What it does, in order (idempotent — safe to re-run any time):
+#   1. preflight   — git, a supported Python (3.11–3.13), disk space
+#   2. venv        — vendor/hermes/.venv-shaula (pip install -e vendor/hermes,
+#                    CVE constraints applied, + python-multipart: required for
+#                    the kanban dashboard API; Hermes doesn't declare it)
+#   3. home        — $HERMES_HOME (default ~/.shaula-home) + the hardened config
+#                    for the tier you chose
+#   4. staff       — the vetted profiles + first-party skills into $HERMES_HOME
+#   5. doctor      — hermes doctor, prove the install is healthy
+#   6. next steps  — the exact commands to boot the board / office / a workflow
+#
+# Usage:
+#   bin/shaula-setup --check              # preflight only, change nothing
+#   bin/shaula-setup --local              # full local-tier setup (prompts before big downloads)
+#   bin/shaula-setup --local --yes        # same, no prompts (accepts the model download)
+#   bin/shaula-setup --cloud my-project   # cloud-brain setup against YOUR GCP project
+#
+# House rules this script keeps: it never touches your clinical systems, never
+# sends anything anywhere, and stores nothing outside this repo + $HERMES_HOME.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+VENV="$ROOT/vendor/hermes/.venv-shaula"
+HERMES="$VENV/bin/hermes"
+export HERMES_HOME="${HERMES_HOME:-$HOME/.shaula-home}"
+
+LOCAL_MODEL="${SHAULA_OLLAMA_MODEL:-qwen2.5:7b-instruct}"
+
+green() { printf '\033[32m%s\033[0m\n' "$1"; }
+red()   { printf '\033[31m%s\033[0m\n' "$1"; }
+note()  { printf '\033[36m%s\033[0m\n' "$1"; }
+die()   { red "setup: $1"; exit 1; }
+
+MODE="" PROJECT_ID="" YES=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --check) MODE="check";;
+    --local) MODE="local";;
+    --cloud) MODE="cloud"; PROJECT_ID="${2:-}"; [ -n "$PROJECT_ID" ] || die "--cloud needs your GCP PROJECT_ID"; shift;;
+    --yes|-y) YES=1;;
+    -h|--help) sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 0;;
+    *) die "unknown flag $1 (see --help)";;
+  esac
+  shift
+done
+[ -n "$MODE" ] || die "pick one: --check | --local | --cloud PROJECT_ID  (see --help)"
+
+confirm() { # confirm "question" — honored only on a TTY without --yes
+  [ "$YES" = "1" ] && return 0
+  if [ -t 0 ]; then
+    printf '%s [y/N] ' "$1"; read -r a; [ "$a" = "y" ] || [ "$a" = "Y" ]
+  else
+    return 1  # non-interactive without --yes: skip optional steps, never hang
+  fi
+}
+
+# ── 1. preflight ─────────────────────────────────────────────────────────────
+echo "== Shaula setup — preflight =="
+command -v git >/dev/null 2>&1 || die "git is required"
+
+# Hermes requires Python >=3.11,<3.14 (vendor/hermes/pyproject.toml — 3.14 has
+# no wheels for the Rust transitives yet). 3.11 first: it is the combination
+# the vendored uv.lock was resolved against and the one proven on real boxes
+# (pip on 3.13 hits ResolutionImpossible on the same tree).
+PY=""
+for v in 3.11 3.12 3.13; do
+  if command -v "python$v" >/dev/null 2>&1; then PY="python$v"; break; fi
+done
+[ -n "$PY" ] || die "no supported Python found — install Python 3.11, 3.12, or 3.13 (3.14 is not supported yet)"
+green "  ✓ $($PY --version 2>&1)  ($PY)"
+if command -v uv >/dev/null 2>&1; then
+  green "  ✓ uv found (preferred installer — honors the vendored lockfile resolution)"
+else
+  note "  · uv not found — will fall back to pip (slower; uv recommended: brew install uv)"
+fi
+
+# ~2 GB for the venv; the local model adds ~4–5 GB more via Ollama.
+free_gb=$(df -g "$ROOT" 2>/dev/null | awk 'NR==2{print $4}' || echo "")
+if [ -n "$free_gb" ] && [ "$free_gb" -lt 8 ]; then
+  red "  ! only ${free_gb} GB free — the venv (~2 GB) + a local model (~5 GB) may not fit"
+else
+  green "  ✓ disk: ${free_gb:-unknown} GB free"
+fi
+
+case "$MODE" in
+  local)
+    if command -v ollama >/dev/null 2>&1; then green "  ✓ ollama found"; else
+      red  "  ! ollama not installed — the local tier needs it: https://ollama.com/download (brew install ollama)"
+    fi;;
+  cloud)
+    if command -v gcloud >/dev/null 2>&1; then green "  ✓ gcloud found"; else
+      red  "  ! gcloud not installed — the cloud tier needs it: https://cloud.google.com/sdk/docs/install"
+    fi;;
+esac
+if command -v node >/dev/null 2>&1; then green "  ✓ node found ($(node --version))"; else
+  note "  · node not found — chat works without it, but the kanban board UI needs Node 20+ (brew install node)"
+fi
+
+if [ "$MODE" = "check" ]; then
+  note "preflight only (--check) — nothing changed. Run --local or --cloud PROJECT_ID to install."
+  exit 0
+fi
+
+# ── 2. venv — the vendored Hermes harness ────────────────────────────────────
+echo
+echo "== Hermes harness (vendored, pinned, hardened) =="
+if [ -x "$HERMES" ]; then
+  green "  ✓ already installed: $HERMES"
+else
+  note "  creating venv (this downloads Python packages once; a few minutes)…"
+  # CVE floor: config/constraints-shaula.txt forces resolution PAST versions
+  # the vendored Hermes pins exactly (e.g. pyjwt==2.12.1 → >2.12.1, flagged in
+  # docs/SECURITY_AUDIT_hermes.md). An exact pin beats a pip *constraint* (the
+  # intersection is empty — ResolutionImpossible), so with uv the file is
+  # applied as OVERRIDES (which by design win over package pins). The pip
+  # fallback installs first, then force-upgrades the flagged packages.
+  # python-multipart is REQUIRED for the kanban dashboard API (Hermes's
+  # pyproject omits it — without it the board 404s).
+  if command -v uv >/dev/null 2>&1; then
+    uv venv --quiet --python "${PY#python}" "$VENV"
+    uv pip install --quiet --python "$VENV/bin/python" \
+      --override "$ROOT/config/constraints-shaula.txt" \
+      -e "$ROOT/vendor/hermes" python-multipart
+  else
+    "$PY" -m venv "$VENV"
+    "$VENV/bin/pip" install --quiet --upgrade pip "setuptools>=77,<83"
+    "$VENV/bin/pip" install --quiet -e "$ROOT/vendor/hermes" python-multipart
+    # CVE floor, pip flavor: upgrade the flagged runtime dep past its pin.
+    # (aiohttp/anthropic are optional extras — only floored if present.)
+    "$VENV/bin/pip" install --quiet --upgrade "PyJWT>2.12.1"
+  fi
+  [ -x "$HERMES" ] || die "hermes did not install to $HERMES"
+  # Prove the CVE floor actually landed (either installer path). A package
+  # that is not installed at all cannot be vulnerable — only floor what exists.
+  "$VENV/bin/python" - <<'PYEOF' || die "CVE floor check failed (an installed package sits below its constraint floor)"
+import importlib.metadata as m
+def past(name, floor):
+    try:
+        ver = m.version(name)
+    except m.PackageNotFoundError:
+        return  # optional extra not installed — nothing to floor
+    v = tuple(int(x) for x in ver.split(".")[:3])
+    assert v > floor, f"{name} {ver} <= {floor}"
+past("PyJWT", (2, 12, 1)); past("aiohttp", (3, 13, 3)); past("anthropic", (0, 86, 0))
+PYEOF
+  green "  ✓ installed: $("$HERMES" --version 2>/dev/null || echo hermes) (CVE floor verified)"
+fi
+
+# ── 3. HERMES_HOME + the hardened config for your tier ──────────────────────
+echo
+echo "== Home + hardened config ($HERMES_HOME) =="
+mkdir -p "$HERMES_HOME"
+HARDEN="$ROOT/config/shaula-harden.yaml"
+[ -f "$HARDEN" ] || die "missing $HARDEN"
+
+if [ "$MODE" = "local" ]; then
+  # The maximalist/offline floor: same hardened config, model block pointed at
+  # local Ollama (the exact floor documented inside shaula-harden.yaml).
+  # Written to BOTH files: config.yaml is the one the vendored Hermes (0.15.x)
+  # actually reads (get_config_path() ignores $HERMES_CONFIG); config.local.yaml
+  # keeps bin/shaula's --local override working on Hermes versions that honor
+  # it. One brain per HERMES_HOME: re-running --cloud later repoints config.yaml.
+  for CFG in "$HERMES_HOME/config.yaml" "$HERMES_HOME/config.local.yaml"; do
+    if [ -f "$CFG" ]; then
+      green "  ✓ $CFG already present (kept — delete it to regenerate)"
+    else
+      sed \
+        -e 's|^\(  base_url:\).*|\1 "http://localhost:11434/v1"|' \
+        -e "s|^\(  default:\).*|\1 \"$LOCAL_MODEL\"|" \
+        "$HARDEN" > "$CFG"
+      green "  ✓ wrote $CFG (hardened config, brain = local Ollama $LOCAL_MODEL)"
+    fi
+  done
+  CFG="$HERMES_HOME/config.yaml"
+else
+  CFG="$HERMES_HOME/config.yaml"
+  if [ -f "$CFG" ]; then
+    green "  ✓ $CFG already present (kept — delete it to regenerate)"
+  else
+    sed "s/PROJECT_ID/$PROJECT_ID/g" "$HARDEN" > "$CFG"
+    green "  ✓ wrote $CFG (hardened config, brain = Gemini on YOUR Vertex: $PROJECT_ID)"
+  fi
+fi
+
+# ── 4. staff — vetted profiles + first-party skills ─────────────────────────
+echo
+echo "== Staff (vetted profiles + skills) =="
+"$VENV/bin/python" "$ROOT/scripts/install_profiles.py" --install \
+  || die "profile install failed (scripts/install_profiles.py)"
+bash "$ROOT/scripts/install_skills.sh" >/dev/null \
+  || die "skills install failed (scripts/install_skills.sh)"
+green "  ✓ profiles + first-party skills installed into $HERMES_HOME"
+if confirm "  also install the office document suite (docx/pdf/pptx/xlsx hub skills)?"; then
+  bash "$ROOT/scripts/install-hub-skills.sh" || red "  ! hub-skills install failed (optional — continuing)"
+fi
+
+# ── 4b. board UI — one-time web build (the dashboard the board serves) ──────
+# The vendored repo ships the dashboard SOURCE, not the built bundle; a fresh
+# clone must build it once or `bin/shaula-board` (--skip-build) refuses to start.
+WEB_DIST="$ROOT/vendor/hermes/hermes_cli/web_dist/index.html"
+if [ -f "$WEB_DIST" ]; then
+  echo
+  green "== Board UI already built =="
+elif command -v npm >/dev/null 2>&1; then
+  echo
+  echo "== Board UI (one-time build) =="
+  if confirm "  build the kanban board web UI now (npm install + build, a few minutes)?"; then
+    # --no-package-lock/--no-save: web/ ships no lockfile, and a bare install
+    # writes one into the TRACKED vendor tree — keep the build side-effect-free.
+    (cd "$ROOT/vendor/hermes/web" && npm install --silent --no-package-lock --no-save && npm run build --silent) \
+      || red "  ! web build failed — board UI unavailable; chat still works. Retry: cd vendor/hermes/web && npm install && npm run build"
+    [ -f "$WEB_DIST" ] && green "  ✓ board UI built"
+  else
+    note "  skipped — build later: cd vendor/hermes/web && npm install && npm run build"
+  fi
+else
+  note "  · skipping board UI build (no npm). Chat works; install Node 20+ for the board."
+fi
+
+# ── 5. local model (local tier only) ─────────────────────────────────────────
+if [ "$MODE" = "local" ] && command -v ollama >/dev/null 2>&1; then
+  echo
+  echo "== Local model =="
+  if ollama list 2>/dev/null | grep -q "^${LOCAL_MODEL%%:*}"; then
+    green "  ✓ a $LOCAL_MODEL-family model is already pulled"
+  elif confirm "  pull $LOCAL_MODEL now (~4–5 GB download)?"; then
+    ollama pull "$LOCAL_MODEL" || red "  ! pull failed — run 'ollama pull $LOCAL_MODEL' yourself, then re-run doctor"
+  else
+    note "  skipped — pull later with: ollama pull $LOCAL_MODEL"
+  fi
+fi
+
+# ── 6. doctor — prove it ─────────────────────────────────────────────────────
+echo
+echo "== Doctor =="
+if [ "$MODE" = "local" ]; then
+  HERMES_CONFIG="$HERMES_HOME/config.local.yaml" "$HERMES" doctor || die "hermes doctor reported problems"
+else
+  "$HERMES" doctor || die "hermes doctor reported problems"
+fi
+green "  ✓ doctor happy"
+
+# ── done — the exact next commands ───────────────────────────────────────────
+echo
+green "== Shaula is installed. Next steps =="
+if [ "$MODE" = "cloud" ]; then
+  cat <<EOF
+
+  YOUR Google project ($PROJECT_ID) still needs, run BY YOU (billable, your account):
+    gcloud auth login
+    gcloud config set project $PROJECT_ID
+    gcloud services enable aiplatform.googleapis.com
+    gcloud auth application-default login
+  Then verify the hardening posture:
+    bash scripts/verify-harden.sh
+
+  First conversation (mints a short-lived token to YOUR Vertex each run):
+    bin/shaula chat -q "hello"
+EOF
+else
+  cat <<EOF
+
+  First conversation (offline, free):
+    export HERMES_HOME="$HERMES_HOME"
+    ollama serve &        # if not already running
+    bin/shaula --local chat -q "hello"
+EOF
+fi
+cat <<EOF
+  The kanban board (the office's single source of work-state truth):
+    export HERMES_HOME="$HERMES_HOME"
+    bin/shaula-board
+  Run your first workflow onto the board (17 capabilities in workflows/templates/):
+    python3 -m workflows.cli plan workflows/templates/weekly-blog.json \\
+        -v topic="Sleep and anxiety" -v project=my-practice
+  Full guide: docs/GETTING_STARTED.md
+EOF

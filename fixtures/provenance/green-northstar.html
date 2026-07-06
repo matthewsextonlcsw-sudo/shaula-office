@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!--
+  GREEN provenance fixture — North Star Counseling.
+
+  A DELIBERATELY ARBITRARY freehand layout: the markup, class names, and section
+  order share NOTHING with templates/private-practice/. Every visible claim is,
+  however, assembled ONLY from APPROVED northstar content — token values from
+  fixtures/northstar-denver/practice.json and generated block text from
+  engine/generated.northstar-denver.json — plus allowlisted boilerplate
+  (nav labels, the 988 crisis line, telehealth). The claim-provenance gate MUST
+  ACCEPT this page: it is exactly the honest-import / honest-freehand case.
+  Synthetic data only — no PHI.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>North Star Counseling</title>
+  <style>
+    /* CSS must never be read as prose; the gate drops <style> bodies. */
+    .hero { width: 100%; color: #1a2b3c; }
+    .pill { border: 1px solid #111; }
+    #cta { background: #07051C; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">North Star Counseling</a>
+    <nav class="links">
+      <a href="#about">About</a>
+      <a href="#approach">Approach</a>
+      <a href="#fees">Fees</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="top">
+      <h1>Therapy for the overextended.</h1>
+      <p class="sub">
+        Out-of-network private psychotherapy with Maya Restrepo, LPC.
+        Evidence-based work for adults, graduate students, and healthcare workers.
+      </p>
+      <a id="cta" class="btn" href="#contact">Request a consult</a>
+    </section>
+
+    <section id="who" class="band">
+      <div class="col">
+        <p>
+          Most clients arrive having already tried hard. They want a clinician
+          who meets that with structure, evidence, and a steady hand.
+        </p>
+      </div>
+      <figure class="quote">
+        <blockquote>
+          "I take this work seriously, and I expect the people I work with to do
+          the same. If you're ready for that, I'm a good clinician to do it
+          with."
+        </blockquote>
+      </figure>
+    </section>
+
+    <section id="approach" class="band alt">
+      <h2>Approach</h2>
+      <p>
+        Every modality below is supported by peer-reviewed research and used in
+        combination — not as a brand.
+      </p>
+      <ul class="chips">
+        <li class="pill">Burnout</li>
+        <li class="pill">Anxiety</li>
+        <li class="pill">Perfectionism</li>
+      </ul>
+    </section>
+
+    <section id="session" class="band">
+      <p>
+        Sessions are 50-minute. The first few are assessment-heavy — history,
+        goals, and a baseline. From there, sessions are structured but not rigid:
+        a check-in, the agreed clinical work, a between-session practice, and a
+        brief close.
+      </p>
+      <p>
+        Trauma-informed throughout. Pace is set by the client's nervous system,
+        not the calendar.
+      </p>
+    </section>
+
+    <section id="fees" class="band alt">
+      <h2>Fees</h2>
+      <p class="figure">$175 · 50-minute session</p>
+      <p class="muted">Telehealth across Colorado.</p>
+    </section>
+
+    <section id="contact" class="band">
+      <h2>Contact</h2>
+      <form action="#" method="post">
+        <label for="n">Your name</label>
+        <input id="n" name="name" placeholder="Your name" />
+        <label for="e">Your email</label>
+        <input id="e" name="email" placeholder="Your email" />
+        <button type="submit">Send message</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p class="crisis">988 Suicide &amp; Crisis Lifeline — Call or text 988.</p>
+    <p class="disclosure">
+      Created with AI assistance from Shaula. Reviewed and approved by Maya
+      Restrepo, LPC before publication.
+    </p>
+  </footer>
+
+  <script>
+    // Script bodies are dropped by the extractor: this fabricated line must NOT
+    // be seen as visible prose, proving <script> stripping works.
+    const FAKE = "98% of clients are cured, guaranteed.";
+    console.log(FAKE);
+  </script>
+</body>
+</html>

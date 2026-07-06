@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jordan Avery, LCSW — Private Psychotherapy · Texas & New Mexico</title>
+
+<meta name="description" content="Out-of-network psychotherapy with Jordan Avery, LCSW. Structured, evidence-based work for anxiety, trauma, and life transitions. Austin office and telehealth across Texas and New Mexico." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..700,30..100&family=Inter+Tight:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+
+<!-- Favicon: default brand mark (talon-gold ring + abstract silhouette). Swap with your own logo if desired. -->
+<link rel="icon" href="assets/placeholder-logo.svg" type="image/svg+xml">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ─────── NAV ─────── -->
+<div class="nav-wrap">
+  <nav class="nav" aria-label="Primary">
+    <button class="brand" data-route="home" aria-label="Cedar & Sage Therapy — Home">
+      <!-- upload LOGO: default placeholder is the abstract mark below (keeps the design's gold ring + ink motif). To use a custom logo, replace the inline <svg> with: <img class="mark" src="assets/placeholder-logo.svg" alt="Cedar & Sage Therapy logo" /> and drop the file at assets/placeholder-logo.svg. -->
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="19" stroke="#C8A35A" stroke-width="1"/>
+          <!-- abstract dual-silhouette mark (generic, brand-neutral) -->
+          <path d="M6 22 C 11 19, 14 21, 17 18 C 14 22, 12 24, 7 25 Z" fill="#14181F"/>
+          <path d="M22 23 C 27 20, 30 22, 34 19 C 30 23, 28 25, 23 26 Z" fill="#14181F" opacity=".55"/>
+          <line x1="8" y1="29" x2="32" y2="29" stroke="#E8B27A" stroke-width="1"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span>Jordan Avery, LCSW</span>
+        <small>Cedar & Sage Therapy</small>
+      </span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a data-route="about" href="#about">About</a>
+      <a data-route="approach" href="#approach">Approach</a>
+      <a data-route="method" href="#method">Method</a>
+      <a data-route="journey" href="#journey">Journey</a>
+      <a data-route="writing" href="#writing">Writing</a>
+      <a data-route="fees" href="#fees">Fees</a>
+    </div>
+    <a class="nav-cta" data-route="contact" href="#contact">Request a consult →</a>
+  </nav>
+</div>
+
+<main id="main">
+  <div id="route-home"></div>
+  <div id="route-about" hidden></div>
+  <div id="route-approach" hidden></div>
+  <div id="route-method" hidden></div>
+  <div id="route-journey" hidden></div>
+  <div id="route-who" hidden></div>
+  <div id="route-fees" hidden></div>
+  <div id="route-writing" hidden></div>
+  <div id="route-contact" hidden></div>
+  <div id="route-privacy" hidden></div>
+</main>
+
+<!-- ─────── FOOTER ─────── -->
+<footer>
+  <div class="foot-grid">
+    <div class="foot-col">
+      <h5>Practice</h5>
+      <p style="font-family:'Fraunces',serif;font-size:18px;font-weight:460;color:var(--ink);letter-spacing:-0.005em;margin-bottom:12px;">Jordan Avery, LCSW</p>
+      <p>Cedar & Sage Therapy<br/>1100 Guadalupe St, Suite 220<br/>Austin, TX 78701</p>
+      <p class="mono" style="margin-top:14px;">512-555-0147</p>
+      <p class="mono">hello@cedarsagetherapy.com</p>
+    </div>
+    <div class="foot-col">
+      <h5>Site</h5>
+      <a data-route="about" href="#about">About</a>
+      <a data-route="approach" href="#approach">Approach</a>
+      <a data-route="method" href="#method">The GROUND Method</a>
+      <a data-route="journey" href="#journey">The Steady Work</a>
+      <a data-route="writing" href="#writing">Writing</a>
+      <a data-route="fees" href="#fees">Fees</a>
+      <a data-route="contact" href="#contact">Contact</a>
+    </div>
+    <div class="foot-col">
+      <h5>Credentials</h5>
+      <p class="mono">TX LCSW · #LCSW-00000 (placeholder)</p>
+      <p class="mono">NM LCSW · #NM-00000 (placeholder)</p>
+      <p class="mono">MSW · UT Austin · 2013</p>
+      <p class="mono" style="margin-top:10px;">Telehealth: Texas & New Mexico</p>
+    </div>
+    <div class="foot-col">
+      <h5>If you need help now</h5>
+      <!-- Crisis lines: 988 + 911 are US-national and safe to keep verbatim. The two region-specific lines are tokenized; if the practice is outside the US, replace 988/911 too. -->
+      <p style="line-height:1.7;">Call or text <strong style="color:var(--ink);font-weight:600;">988</strong> (Suicide &amp; Crisis Lifeline)</p>
+      <p>Call <strong style="color:var(--ink);font-weight:600;">911</strong> for an emergency</p>
+      <p>Crisis Text Line: <strong style="color:var(--ink);font-weight:600;">Text HOME to 741741</strong></p>
+      <p>Texas 24/7 Mental Health Line: <strong style="color:var(--ink);font-weight:600;">1-800-273-8255</strong></p>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 Cedar & Sage Therapy</span>
+    <div class="crisis">
+      <a data-route="privacy" href="#privacy"><span>Privacy</span></a>
+      <a data-route="privacy" href="#privacy"><span>Terms</span></a>
+      <a data-route="privacy" href="#privacy"><span>Accessibility</span></a>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+<script src="tweaks.js"></script>
+</body>
+</html>

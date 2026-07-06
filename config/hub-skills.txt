@@ -1,0 +1,23 @@
+# Hermes-hub skills installed into the Shaula box (beyond the in-repo skills/ + Hermes builtins).
+# Curated for a therapist's AI OFFICE — document production the base brain can't do itself.
+#
+# CURATION RULE (HIPAA box): install ONLY trust tier OFFICIAL (Nous) or TRUSTED (anthropics/skills).
+# Community skills are NOT bulk-installed (88k+ unvetted = supply-chain risk on a PHI box). Every skill
+# here is a LOCAL generator (python-docx / reportlab / python-pptx / openpyxl) — no network egress, no
+# PHI leaves the box. Each install runs the Hermes security scan (no --force).
+#
+# Why these: official Nous skills skew dev/ML/creative/security; office-productivity lives in the
+# community tier — EXCEPT the Anthropic doc suite, which skills.sh marks "trusted". That suite is the
+# real office gap (the brain writes text fine on its own, but cannot emit a real .docx/.pdf/.xlsx binary).
+#
+# Install: scripts/install-hub-skills.sh   (idempotent; canonicalizes HERMES_HOME)
+# Builtins already enabled (no install needed): nano-pdf, ocr-and-documents, humanizer, himalaya (email),
+#   design-md, excalidraw, jupyter-live-kernel, manim-video, p5js, github-*, apple-notes/reminders.
+
+skills-sh/anthropics/skills/docx     # Word — letters, treatment plans, intake packets (clinical-admin, scribe, frontdesk)
+skills-sh/anthropics/skills/pdf      # PDF + fillable forms — superbills, handouts, intake forms (biller, frontdesk, clinical-admin)
+skills-sh/anthropics/skills/pptx     # PowerPoint — psychoeducation decks (marketer, clinical-admin)
+skills-sh/anthropics/skills/xlsx     # Excel — practice analytics, billing/superbill sheets (analytics, biller)
+
+# GATED (needs Matthew + a PHI/egress review before install — front-desk email touches client PII):
+#   official/email/agentmail          # the agent's own email inbox — front desk comms

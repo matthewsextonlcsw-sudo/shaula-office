@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'" />
+<title>Shaula — first run</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; height:100vh; display:flex; align-items:center; justify-content:center;
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#e8e8f0; background:#0e0f1a; }
+  .card { max-width:520px; padding:40px; text-align:center; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  .sub { color:#9aa; margin:0 0 28px; }
+  p { color:#c8c8d4; }
+  code { background:#23243a; color:#cfd0e6; padding:1px 7px; border-radius:6px; font-size:14px; }
+  .step { text-align:left; background:#171829; border:1px solid #262842; border-radius:14px; padding:18px 20px; margin:18px 0; }
+  .step b { color:#fff; }
+  button { font:inherit; font-weight:600; border:0; border-radius:12px; padding:12px 22px; cursor:pointer; margin:6px; }
+  button:disabled { opacity:.5; cursor:default; }
+  .primary { background:#6c5ce7; color:#fff; }
+  .ghost { background:#23243a; color:#cfd0e6; }
+  .note { color:#7a7c93; font-size:13px; margin-top:22px; }
+  #status, #mstatus { min-height:22px; color:#8ad; font-size:14px; margin-top:10px; }
+  .hidden { display:none; }
+  .bar { height:10px; background:#23243a; border-radius:6px; overflow:hidden; margin:16px 0 6px; }
+  .bar > i { display:block; height:100%; width:0; background:#6c5ce7; transition:width .3s ease; }
+  #pct { color:#9aa; font-size:13px; }
+</style>
+</head>
+<body>
+  <!-- Panel 1: Ollama (the local engine) not detected -->
+  <div class="card hidden" id="panel-ollama">
+    <h1>Welcome to Shaula</h1>
+    <p class="sub">Your AI office — free, and it runs entirely on this machine.</p>
+    <p>Shaula does your marketing back-office (website, blog, content) using a local AI brain.
+       <b>Nothing leaves your computer.</b> No account, no cloud, no fees.</p>
+    <div class="step">
+      <p style="margin:0"><b>One-time setup:</b> install the free local AI engine, <b>Ollama</b>.
+         It's the engine Shaula's brain runs on — a single free download.</p>
+    </div>
+    <button class="primary" id="install">Get Ollama (free)</button>
+    <button class="ghost" id="recheck">I've installed it — continue</button>
+    <div id="status"></div>
+    <p class="note">House-nothing: Shaula talks only to your local engine. No telemetry, ever.</p>
+  </div>
+
+  <!-- Panel 2: Ollama present, but the model isn't pulled yet -->
+  <div class="card hidden" id="panel-model">
+    <h1>One more step</h1>
+    <p class="sub">Shaula needs its AI brain — a one-time download.</p>
+    <p>The engine is installed. Now download Shaula's brain, the <code id="model-name">model</code>
+       model. It downloads once and lives on your machine — <b>nothing leaves your computer.</b></p>
+    <button class="primary" id="download">Download the brain (free)</button>
+    <div class="bar hidden" id="bar"><i id="bar-fill"></i></div>
+    <div id="pct" class="hidden"></div>
+    <div id="mstatus"></div>
+    <p class="note">Large download (depends on the model). You can leave this running — it resumes if interrupted.</p>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const show = (which) => {
+    $('panel-ollama').classList.toggle('hidden', which !== 'ollama');
+    $('panel-model').classList.toggle('hidden', which !== 'model');
+  };
+
+  // Route to the right panel based on live boot status.
+  async function route() {
+    const s = await window.shaula.getStatus();
+    if (!s.ollamaUp) { show('ollama'); return s; }
+    if (!s.modelPresent) { $('model-name').textContent = s.model; show('model'); return s; }
+    // Everything present (rare on this page) — let main boot into the cockpit.
+    window.shaula.recheck();
+    return s;
+  }
+
+  // Panel 1 — install Ollama
+  $('install').onclick = () => window.shaula.openExternal('https://ollama.com/download');
+  $('recheck').onclick = async () => {
+    $('status').textContent = 'Checking for the local engine…';
+    const s = await window.shaula.getStatus();
+    if (s.ollamaUp && s.modelPresent) { $('status').textContent = 'Found it — starting your office…'; window.shaula.recheck(); }
+    else if (s.ollamaUp) { show('model'); $('model-name').textContent = s.model; }
+    else { $('status').textContent = "Not detected yet. Install Ollama, make sure it's running, then try again."; }
+  };
+
+  // Panel 2 — download the model
+  $('download').onclick = async () => {
+    $('download').disabled = true;
+    $('bar').classList.remove('hidden');
+    $('pct').classList.remove('hidden');
+    $('mstatus').textContent = 'Starting download…';
+    const off = window.shaula.onPullProgress((d) => {
+      if (d.error) { $('mstatus').textContent = 'Error: ' + d.error; return; }
+      if (typeof d.percent === 'number') {
+        $('bar-fill').style.width = d.percent + '%';
+        $('pct').textContent = d.percent + '%';
+      }
+      if (d.status) $('mstatus').textContent = d.status;
+    });
+    const r = await window.shaula.pullModel();
+    if (off) off();
+    if (r && r.ok) {
+      $('bar-fill').style.width = '100%';
+      $('pct').textContent = '100%';
+      $('mstatus').textContent = 'Done — starting your office…';
+      // main calls boot() on success and swaps this window to the cockpit.
+    } else {
+      $('download').disabled = false;
+      $('mstatus').textContent = 'Download failed: ' + ((r && r.error) || 'unknown') + '. Check Ollama is running and try again.';
+    }
+  };
+
+  route();
+</script>
+</body>
+</html>

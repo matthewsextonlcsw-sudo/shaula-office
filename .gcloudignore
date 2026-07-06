@@ -1,0 +1,10 @@
+# Cloud Build upload context — only what svc/Dockerfile COPYs.
+# (vendor/ 182M Hermes + infra/ .terraform providers + sites/ stay home.)
+/*
+!/svc
+!/engine
+!/workflows
+!/templates
+__pycache__/
+*.pyc
+.DS_Store

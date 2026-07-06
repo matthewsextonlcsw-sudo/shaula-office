@@ -1,0 +1,1471 @@
+<!doctype html>
+<html lang="en" data-theme="daylight">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shaula — your office</title>
+<style>
+  /* ============================================================
+     SKIN LAYER — identical to board.html. Every color a variable.
+     Swap [data-theme] and the whole office re-skins, zero structure edits.
+     ============================================================ */
+  :root,
+  [data-theme="daylight"] {
+    --bg:#f4f6fb; --bg-tint:#eaeefb; --surface:#ffffff; --surface-2:#f7f8fc;
+    --ink:#1f2430; --ink-soft:#5b6472; --ink-faint:#8a93a3; --line:#e6e9f2;
+    --brand:#4f6df5; --brand-ink:#ffffff; --accent:#7c5cff;
+    --ok:#18a558; --ok-bg:#e6f6ec; --warn:#c98a16; --warn-bg:#fdf2db;
+    --col-todo:#4f6df5; --col-triage:#c98a16; --col-doing:#7c5cff; --col-done:#18a558;
+    --shadow:0 1px 2px rgba(31,36,48,.06),0 8px 24px rgba(31,36,48,.06);
+    --shadow-sm:0 1px 2px rgba(31,36,48,.08); --radius:16px; --radius-sm:11px;
+  }
+  [data-theme="sunrise"] {
+    --bg:#fff6f0; --bg-tint:#ffe9dc; --surface:#ffffff; --surface-2:#fff3ec;
+    --ink:#3a2418; --ink-soft:#7a5648; --ink-faint:#b08c7c; --line:#f6e0d3;
+    --brand:#ff6f5e; --brand-ink:#ffffff; --accent:#ff9248;
+    --ok:#2bae66; --ok-bg:#e4f7ec; --warn:#e08a1e; --warn-bg:#fff0d6;
+    --col-todo:#ff6f5e; --col-triage:#e08a1e; --col-doing:#ff9248; --col-done:#2bae66;
+    --shadow:0 1px 2px rgba(58,36,24,.06),0 10px 28px rgba(255,111,94,.12);
+    --shadow-sm:0 1px 2px rgba(58,36,24,.08); --radius:16px; --radius-sm:11px;
+  }
+  [data-theme="meadow"] {
+    --bg:#f1f8f1; --bg-tint:#e0f0e2; --surface:#ffffff; --surface-2:#f3faf3;
+    --ink:#1c2b20; --ink-soft:#4f6354; --ink-faint:#87998b; --line:#dcebde;
+    --brand:#2f9e63; --brand-ink:#ffffff; --accent:#5bbf8a;
+    --ok:#2f9e63; --ok-bg:#e3f5ea; --warn:#b98415; --warn-bg:#fbf0d6;
+    --col-todo:#2f9e63; --col-triage:#b98415; --col-doing:#3a8fb0; --col-done:#5bbf8a;
+    --shadow:0 1px 2px rgba(28,43,32,.06),0 10px 28px rgba(47,158,99,.12);
+    --shadow-sm:0 1px 2px rgba(28,43,32,.08); --radius:16px; --radius-sm:11px;
+  }
+  [data-theme="bubblegum"] {
+    --bg:#fdf2fb; --bg-tint:#fbe2f6; --surface:#ffffff; --surface-2:#fdf1fb;
+    --ink:#2c1b33; --ink-soft:#6b5072; --ink-faint:#a78bab; --line:#f4ddf0;
+    --brand:#e84fae; --brand-ink:#ffffff; --accent:#8b5cf6;
+    --ok:#2bb07a; --ok-bg:#e2f7ee; --warn:#d98324; --warn-bg:#fdeed6;
+    --col-todo:#e84fae; --col-triage:#d98324; --col-doing:#8b5cf6; --col-done:#2bb07a;
+    --shadow:0 1px 2px rgba(44,27,51,.07),0 10px 28px rgba(232,79,174,.14);
+    --shadow-sm:0 1px 2px rgba(44,27,51,.09); --radius:16px; --radius-sm:11px;
+  }
+
+  /* ============================================================
+     STRUCTURE — no hard-coded colors below this line.
+     ============================================================ */
+  * { box-sizing: border-box; }
+  /* NOTE: no `height:100%` on html/body — it locks the page to one viewport and
+     kills scrolling once a view is taller than the screen. min-height on body
+     lets the document grow + scroll; the sticky sidebar uses 100vh on its own. */
+  body {
+    margin:0;
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased;
+    display: grid; grid-template-columns: 244px 1fr; min-height: 100vh;
+  }
+
+  /* ---- sidebar ---- */
+  .side { background: var(--surface); border-right: 1px solid var(--line); padding: 20px 16px;
+    display: flex; flex-direction: column; gap: 6px; position: sticky; top: 0; height: 100vh; }
+  .brand { display: flex; align-items: center; gap: 11px; padding: 4px 8px 16px; }
+  .mark { width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    display: grid; place-items: center; color: var(--brand-ink); font-weight: 800; font-size: 17px; box-shadow: var(--shadow-sm); }
+  .brand b { font-size: 18px; letter-spacing: .3px; }
+  .brand small { display: block; color: var(--ink-faint); font-size: 11px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; }
+
+  .nav { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+  .nav button { all: unset; cursor: pointer; display: flex; align-items: center; gap: 11px;
+    padding: 10px 12px; border-radius: var(--radius-sm); color: var(--ink-soft);
+    font-weight: 650; font-size: 14.5px; transition: background .12s, color .12s; }
+  .nav button .ico { width: 18px; text-align: center; font-size: 15px; opacity: .9; }
+  .nav button:hover { background: var(--surface-2); color: var(--ink); }
+  .nav button[aria-current="true"] { background: var(--bg-tint); color: var(--ink); }
+  .nav button[aria-current="true"] .ico { color: var(--brand); opacity: 1; }
+  .nav .count { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--brand-ink);
+    background: var(--brand); border-radius: 20px; min-width: 20px; text-align: center; padding: 1px 7px; }
+  .nav .count.zero { display: none; }
+
+  .side-foot { margin-top: auto; padding: 12px 8px 2px; display: flex; flex-direction: column; gap: 10px; }
+  .pledge { background: var(--ok-bg); color: var(--ok); border-radius: var(--radius-sm);
+    padding: 9px 11px; font-size: 11.5px; font-weight: 700; line-height: 1.45; }
+  .pledge .dot { color: var(--ok); }
+  .credit { font-size: 10.5px; color: var(--ink-faint); line-height: 1.5; padding: 0 3px; }
+  .credit a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px dotted var(--line); }
+
+  /* ---- main ---- */
+  .main { padding: 24px 30px 60px; overflow-x: hidden; max-width: 1000px; }
+  .top { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .top h1 { font-size: 24px; margin: 0; letter-spacing: .2px; }
+  .top .sub { color: var(--ink-faint); font-size: 13.5px; font-weight: 600; margin-top: 3px; }
+  .spacer { flex: 1; }
+  .themes { display: flex; align-items: center; gap: 7px; }
+  .themes span { font-size: 11px; color: var(--ink-faint); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin-right: 2px; }
+  .swatch { width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+    border: 2px solid var(--surface); outline: 2px solid transparent;
+    box-shadow: var(--shadow-sm); transition: outline-color .12s, transform .1s; }
+  .swatch:hover { transform: translateY(-1px); }
+  .swatch[aria-pressed="true"] { outline-color: var(--ink-soft); }
+
+  .preview-note { display: flex; align-items: center; gap: 10px; background: var(--warn-bg); color: var(--warn);
+    border-radius: var(--radius-sm); padding: 9px 14px; margin-bottom: 18px; font-size: 12.5px; font-weight: 650; }
+  .preview-note b { font-weight: 800; }
+
+  /* ---- setup checklist strip ---- */
+  .setup-strip { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+  .setup-strip .sh { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .setup-strip .sh b { font-size: 15px; }
+  .setup-strip .sh .prog { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--ink-faint); }
+  .steps { display: flex; flex-direction: column; gap: 8px; }
+  .stepline { display: flex; align-items: center; gap: 12px; padding: 9px 11px; border-radius: var(--radius-sm);
+    background: var(--surface-2); }
+  .stepline .tick { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+    font-weight: 800; font-size: 13px; flex-shrink: 0; }
+  .stepline.done .tick { background: var(--ok); color: #fff; }
+  .stepline.now  .tick { background: var(--brand); color: #fff; }
+  .stepline.todo .tick { background: var(--surface); color: var(--ink-faint); border: 1.5px solid var(--line); }
+  .stepline .txt b { font-size: 13.5px; }
+  .stepline .txt p { margin: 2px 0 0; font-size: 12px; color: var(--ink-soft); line-height: 1.4; }
+  .stepline .act { margin-left: auto; }
+  .stepline.done .txt b { color: var(--ink-soft); }
+
+  /* ---- feed sections ---- */
+  .feed-sec { margin-bottom: 30px; }
+  .feed-h { display: flex; align-items: baseline; gap: 10px; margin: 0 2px 14px; }
+  .feed-h b { font-size: 15px; }
+  .feed-h span { color: var(--ink-faint); font-size: 12.5px; font-weight: 600; }
+  .feed { display: flex; flex-direction: column; gap: 14px; }
+
+  /* outcome / approval card */
+  .oc { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); overflow: hidden; transition: transform .1s, box-shadow .12s; }
+  .oc:hover { box-shadow: var(--shadow); }
+  .oc.first { outline: 2px solid var(--brand); outline-offset: 0; }
+  .oc-body { display: flex; gap: 15px; padding: 18px 18px 16px; }
+  .oc-ico { width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0; display: grid; place-items: center;
+    color: #fff; font-size: 21px; box-shadow: var(--shadow-sm); }
+  .oc-main { flex: 1; min-width: 0; }
+  .oc-title { font-size: 16px; font-weight: 750; line-height: 1.35; letter-spacing: .1px; }
+  .oc-by { display: flex; align-items: center; gap: 7px; margin: 8px 0 0; flex-wrap: wrap; }
+  .oc-by small { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; line-height: 1.45; }
+  .oc-flag { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px;
+    padding: 2px 7px; border-radius: 6px; }
+  .oc-flag.sample { color: var(--warn); background: var(--warn-bg); }
+  .oc-flag.real { color: var(--ok); background: var(--ok-bg); }
+  .oc-acts { display: flex; align-items: center; gap: 9px; padding: 0 18px 16px; flex-wrap: wrap; }
+  .btn { all: unset; cursor: pointer; font-weight: 700; font-size: 13.5px; padding: 9px 16px;
+    border-radius: var(--radius-sm); transition: transform .08s, filter .12s, background .12s; }
+  .btn:active { transform: translateY(1px); }
+  .btn.look { background: var(--brand); color: var(--brand-ink); }
+  .btn.look:hover { filter: brightness(1.06); }
+  .btn.ok { background: var(--ok-bg); color: var(--ok); }
+  .btn.ok:hover { filter: brightness(.97); }
+  .btn.no { background: var(--surface-2); color: var(--ink-soft); }
+  .btn.no:hover { background: var(--line); }
+  .btn.ghost { background: var(--surface-2); color: var(--ink-soft); }
+
+  /* inline preview drawer (learn-by-doing, not a tour) */
+  .oc-prev { display: none; border-top: 1px dashed var(--line); padding: 15px 18px; background: var(--surface-2);
+    font-size: 13px; color: var(--ink-soft); line-height: 1.6; white-space: pre-wrap; }
+  .oc.open .oc-prev { display: block; }
+  .oc-prev .open-real { display: inline-block; margin-top: 10px; font-weight: 700; color: var(--brand); text-decoration: none; font-size: 12.5px; }
+
+  /* resolved (approved / parked) state */
+  .oc.resolved .oc-body, .oc.resolved .oc-acts, .oc.resolved .oc-prev { display: none; }
+  .oc-resolved { display: none; align-items: center; gap: 11px; padding: 16px 18px; font-size: 13.5px; font-weight: 650; }
+  .oc.resolved .oc-resolved { display: flex; }
+  .oc-resolved .rico { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; flex-shrink: 0; }
+  .oc.approved { border-color: var(--ok); }
+  .oc.approved .rico { background: var(--ok); }
+  .oc.approved .oc-resolved { color: var(--ok); }
+  .oc.parked .rico { background: var(--ink-faint); }
+  .oc.parked .oc-resolved { color: var(--ink-faint); }
+  .oc-resolved .undo { all: unset; cursor: pointer; margin-left: auto; font-size: 12px; font-weight: 700;
+    color: var(--ink-soft); border-bottom: 1px dotted var(--line); }
+
+  .empty { color: var(--ink-faint); font-size: 13.5px; font-weight: 600; padding: 8px 2px; }
+
+  /* ---- the work (demoted board) ---- */
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: start; }
+  .col { background: var(--surface-2); border-radius: var(--radius); padding: 12px; min-height: 110px; }
+  .col-head { display: flex; align-items: center; gap: 9px; padding: 4px 6px 12px; }
+  .col-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .col-head b { font-size: 13px; letter-spacing: .2px; }
+  .col-head .n { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--ink-faint);
+    background: var(--surface); border-radius: 20px; padding: 2px 9px; }
+  .cards { display: flex; flex-direction: column; gap: 10px; }
+  .card { background: var(--surface); border-radius: var(--radius-sm); padding: 13px 13px 11px;
+    box-shadow: var(--shadow-sm); border: 1px solid var(--line); transition: transform .1s, box-shadow .12s; }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .card.sample { border-style: dashed; }
+  .card .ttl { font-size: 13px; font-weight: 700; line-height: 1.35; margin-bottom: 9px; }
+  .card .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .who { display: flex; align-items: center; gap: 7px; margin-right: auto; }
+  .ava { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 800; }
+  .who small { font-size: 11.5px; color: var(--ink-soft); font-weight: 650; }
+  .flag { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; padding: 2px 7px; border-radius: 6px; }
+  .flag.s { color: var(--warn); background: var(--warn-bg); }
+  .flag.r { color: var(--ok); background: var(--ok-bg); }
+  .link { font-size: 11.5px; font-weight: 700; color: var(--brand); text-decoration: none; }
+
+  /* ---- staff grid ---- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px; box-shadow: var(--shadow-sm); transition: transform .1s, box-shadow .12s; }
+  .tile:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .tile-head { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
+  .tile-head b { font-size: 15px; }
+  .tile p { margin: 0; font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+  .tile .row { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .badge { font-size: 10.5px; font-weight: 800; padding: 3px 9px; border-radius: 20px; }
+  .badge.ready { color: var(--ok); background: var(--ok-bg); }
+  .badge.soon  { color: var(--warn); background: var(--warn-bg); }
+  .badge.nophi { color: var(--ink-faint); background: var(--surface-2); }
+
+  /* ---- routines ---- */
+  .r-group { margin-bottom: 26px; }
+  .r-group-h { display: flex; align-items: baseline; gap: 9px; margin: 0 2px 13px; }
+  .r-group-h b { font-size: 14.5px; }
+  .r-group-h span { font-size: 12px; color: var(--ink-faint); font-weight: 600; }
+  .r-ico { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; display: grid; place-items: center;
+    color: #fff; font-size: 19px; box-shadow: var(--shadow-sm); }
+  .r-staff { display: flex; align-items: center; margin-right: auto; }
+  .r-staff .ava { width: 21px; height: 21px; font-size: 10px; margin-left: -6px; border: 2px solid var(--surface); }
+  .r-staff .ava:first-child { margin-left: 0; }
+  .r-staff small { font-size: 11.5px; color: var(--ink-soft); font-weight: 600; margin-left: 8px; }
+  .r-note { margin-top: 11px; font-size: 11.5px; color: var(--ink-soft); line-height: 1.5;
+    background: var(--surface-2); border-radius: 10px; padding: 9px 11px; }
+  .r-note b { color: var(--ink); font-weight: 750; }
+  .badge.build { color: var(--brand); background: var(--bg-tint); }
+  .badge.plan  { color: var(--ink-faint); background: var(--surface-2); }
+  .badge.lock  { color: var(--warn); background: var(--warn-bg); }
+
+  /* ---- ASK SHAULA: persistent floating entry point (lives on every screen) ---- */
+  .ask-fab { position: fixed; right: 26px; bottom: 26px; z-index: 40;
+    display: flex; align-items: center; gap: 9px; cursor: pointer;
+    background: linear-gradient(135deg, var(--brand), var(--accent)); color: #fff;
+    border: none; border-radius: 30px; padding: 13px 19px 13px 14px;
+    font-family: inherit; font-weight: 750; font-size: 14.5px; letter-spacing: .2px;
+    box-shadow: 0 6px 22px rgba(31,36,48,.22); transition: transform .12s, filter .12s; }
+  .ask-fab:hover { transform: translateY(-2px); filter: brightness(1.05); }
+  .ask-fab:active { transform: translateY(0); }
+  .ask-fab .fab-mark { width: 26px; height: 26px; border-radius: 8px; background: rgba(255,255,255,.22);
+    display: grid; place-items: center; font-size: 14px; font-weight: 800; }
+  .ask-fab .fab-pulse { width: 7px; height: 7px; border-radius: 50%; background: #fff;
+    margin-left: 1px; animation: fabpulse 2.4s infinite; }
+  @keyframes fabpulse { 0%{box-shadow:0 0 0 0 rgba(255,255,255,.6)} 70%{box-shadow:0 0 0 8px rgba(255,255,255,0)} 100%{box-shadow:0 0 0 0 rgba(255,255,255,0)} }
+
+  /* ---- ASK SHAULA: the dedicated chat surface (its own clean page) ---- */
+  .chat-wrap { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: none; flex-direction: column; }
+  .chat-wrap.open { display: flex; }
+  .chat-top { display: flex; align-items: center; gap: 13px; padding: 15px 22px;
+    background: var(--surface); border-bottom: 1px solid var(--line); }
+  .chat-top .cmark { width: 38px; height: 38px; border-radius: 11px;
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 18px; box-shadow: var(--shadow-sm); }
+  .chat-top .ct-txt b { font-size: 16px; }
+  .chat-top .ct-txt small { display: block; color: var(--ink-faint); font-size: 11.5px; font-weight: 600; margin-top: 1px; }
+  .chat-top .ct-close { all: unset; cursor: pointer; margin-left: auto; color: var(--ink-soft);
+    font-weight: 700; font-size: 13.5px; padding: 8px 14px; border-radius: var(--radius-sm); }
+  .chat-top .ct-close:hover { background: var(--surface-2); color: var(--ink); }
+
+  .chat-scroll { flex: 1; overflow-y: auto; padding: 24px 0; }
+  .chat-inner { max-width: 720px; margin: 0 auto; padding: 0 22px; }
+
+  .chat-empty { text-align: center; padding: 32px 10px 10px; }
+  .chat-empty .big { width: 58px; height: 58px; border-radius: 16px; margin: 0 auto 16px;
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 26px; box-shadow: var(--shadow); }
+  .chat-empty h3 { font-size: 20px; margin: 0 0 6px; }
+  .chat-empty p { color: var(--ink-soft); font-size: 14px; margin: 0 auto 22px; max-width: 430px; line-height: 1.55; }
+  .chat-chips { display: flex; flex-direction: column; gap: 10px; max-width: 470px; margin: 0 auto; }
+  .chip { all: unset; cursor: pointer; background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: 13px 16px; box-shadow: var(--shadow-sm);
+    transition: transform .1s, box-shadow .12s, border-color .12s; display: flex; align-items: center; gap: 12px; text-align: left; }
+  .chip:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: var(--brand); }
+  .chip .cico { font-size: 17px; flex-shrink: 0; }
+  .chip b { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .chip small { display: block; color: var(--ink-faint); font-size: 11.5px; font-weight: 600; margin-top: 2px; }
+
+  .msg { display: flex; gap: 11px; margin-bottom: 18px; align-items: flex-start; }
+  .msg .b-ava { width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center;
+    color: #fff; font-weight: 800; font-size: 12px; }
+  .msg.shaula .b-ava { background: linear-gradient(135deg, var(--brand), var(--accent)); }
+  .msg .bubble { padding: 12px 15px; border-radius: 14px; font-size: 14px; line-height: 1.55; max-width: 80%; }
+  .msg.shaula .bubble { background: var(--surface); border: 1px solid var(--line); color: var(--ink); border-top-left-radius: 5px; }
+  .msg.me { flex-direction: row-reverse; }
+  .msg.me .b-ava { background: var(--ink-soft); }
+  .msg.me .bubble { background: var(--brand); color: var(--brand-ink); border-top-right-radius: 5px; }
+  .msg .bubble .routed { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 11px;
+    font-weight: 700; color: var(--ink-soft); background: var(--surface-2); padding: 4px 10px; border-radius: 20px; }
+
+  .chat-bar { border-top: 1px solid var(--line); background: var(--surface); padding: 13px 22px 15px; }
+  .chat-bar .cb-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px; }
+  .chat-bar textarea { flex: 1; resize: none; border: 1px solid var(--line); border-radius: 14px;
+    padding: 12px 15px; font-family: inherit; font-size: 14px; color: var(--ink); background: var(--surface-2);
+    line-height: 1.5; max-height: 120px; outline: none; transition: border-color .12s, background .12s; }
+  .chat-bar textarea:focus { border-color: var(--brand); background: var(--surface); }
+  .chat-bar .send { all: unset; cursor: pointer; background: var(--brand); color: #fff; font-weight: 800;
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; flex-shrink: 0;
+    transition: filter .12s, transform .08s; }
+  .chat-bar .send:hover { filter: brightness(1.06); }
+  .chat-bar .send:active { transform: translateY(1px); }
+  .chat-bar .cb-note { max-width: 720px; margin: 9px auto 0; text-align: center; font-size: 11px; color: var(--ink-faint); font-weight: 600; line-height: 1.4; }
+
+  /* ---- routine run-once / schedule actions (only on runnable routines) ---- */
+  .tile-acts { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed var(--line); flex-wrap: wrap; }
+  .btn.sm { font-size: 12.5px; padding: 7px 13px; }
+  .btn.run { background: var(--brand); color: var(--brand-ink); }
+  .btn.run:hover { filter: brightness(1.06); }
+  .btn.sched { background: var(--surface-2); color: var(--ink-soft); }
+  .btn.sched:hover { background: var(--line); }
+  .tile-acts .ta-note { font-size: 11px; color: var(--ink-faint); font-weight: 600; margin-left: 2px; }
+
+  /* ---- flagship band: website builder + workspace unlock ---- */
+  .flag-head { display: flex; align-items: baseline; gap: 9px; margin: 2px 2px 13px; }
+  .flag-head b { font-size: 14.5px; }
+  .flag-head span { font-size: 12px; color: var(--ink-faint); font-weight: 600; }
+  .flag-band { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; margin-bottom: 30px; }
+  .flag-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
+    transition: transform .1s, box-shadow .12s; }
+  .flag-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .flag-card.hero { outline: 2px solid var(--brand); }
+  .fc-top { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .fc-ico { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; color: #fff;
+    font-size: 22px; box-shadow: var(--shadow-sm); background: linear-gradient(135deg, var(--brand), var(--accent)); }
+  .fc-ico.alt { background: linear-gradient(135deg, var(--ok), var(--col-doing)); font-weight: 800; }
+  .fc-top .badge { margin-left: auto; }
+  .flag-card h3 { font-size: 17px; margin: 0 0 7px; letter-spacing: .1px; }
+  .flag-card p { margin: 0 0 14px; font-size: 13px; color: var(--ink-soft); line-height: 1.55; }
+  .fc-acts { display: flex; align-items: center; gap: 11px; margin-top: auto; }
+  .fc-note { font-size: 11px; color: var(--ink-faint); font-weight: 600; }
+
+  /* savings callout (honest $0-vs-Squarespace line) */
+  .save-line { background: var(--ok-bg); color: var(--ok); border-radius: 10px; padding: 9px 12px;
+    font-size: 12.5px; font-weight: 750; line-height: 1.5; margin-bottom: 14px; }
+  .save-line small { display: block; color: var(--ink-soft); font-weight: 600; font-size: 11px; margin-top: 3px; }
+  .save-line.big { font-size: 13.5px; margin: 6px 0 2px; }
+
+  /* ---- modal shell (schedule picker · website wizard · workspace unlock) ---- */
+  .modal-back { position: fixed; inset: 0; z-index: 60; background: rgba(31,36,48,.45);
+    display: none; align-items: center; justify-content: center; padding: 22px; }
+  .modal-back.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+    width: 100%; max-width: 540px; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; }
+  .modal-head { display: flex; align-items: center; gap: 10px; padding: 17px 20px;
+    border-bottom: 1px solid var(--line); flex-shrink: 0; }
+  .modal-head b { font-size: 16px; }
+  .modal-x { all: unset; cursor: pointer; margin-left: auto; color: var(--ink-faint); font-size: 15px;
+    width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; }
+  .modal-x:hover { background: var(--surface-2); color: var(--ink); }
+  .modal-bd { padding: 18px 20px; overflow-y: auto; flex: 1; }
+  .m-lead { margin: 0 0 16px; font-size: 13px; color: var(--ink-soft); line-height: 1.55; }
+  .m-label { font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px;
+    color: var(--ink-faint); margin: 0 0 9px; }
+  .modal-foot { display: flex; align-items: center; gap: 10px; justify-content: flex-end;
+    padding: 14px 20px; border-top: 1px solid var(--line); background: var(--surface-2); flex-shrink: 0; }
+
+  /* schedule day chips + time */
+  .day-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
+  .day-chip { all: unset; cursor: pointer; padding: 8px 13px; border-radius: 20px; font-size: 13px; font-weight: 700;
+    background: var(--surface-2); color: var(--ink-soft); border: 1.5px solid var(--line); transition: background .12s, color .12s, border-color .12s; }
+  .day-chip:hover { border-color: var(--brand); }
+  .day-chip.on { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+  .m-time { font-family: inherit; font-size: 14px; padding: 9px 12px; border-radius: var(--radius-sm);
+    border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink); margin-bottom: 16px; }
+
+  /* website wizard */
+  .wiz-dots { display: flex; gap: 7px; margin-bottom: 18px; }
+  .wd { width: 28px; height: 5px; border-radius: 3px; background: var(--line); transition: background .15s; }
+  .wd.on { background: var(--brand); } .wd.done { background: var(--ok); }
+  .wiz-opts { display: flex; flex-direction: column; gap: 10px; }
+  .wiz-opt { all: unset; cursor: pointer; display: flex; align-items: center; gap: 13px; padding: 14px 15px;
+    border: 1.5px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2);
+    transition: transform .1s, border-color .12s, box-shadow .12s; }
+  .wiz-opt:hover { transform: translateY(-1px); border-color: var(--brand); box-shadow: var(--shadow-sm); }
+  .wo-ico { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; flex-shrink: 0;
+    font-size: 18px; background: var(--surface); border: 1px solid var(--line); }
+  .wo-txt b { font-size: 14px; display: block; }
+  .wo-txt small { font-size: 12px; color: var(--ink-soft); display: block; margin-top: 2px; line-height: 1.45; }
+  .wiz-sum { margin: 0 0 14px; padding-left: 18px; }
+  .wiz-sum li { font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+  .wiz-sum b { color: var(--ink); }
+  .wiz-done { text-align: center; padding: 14px 6px 6px; }
+  .wd-ico { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 14px; background: var(--ok); color: #fff;
+    display: grid; place-items: center; font-size: 28px; font-weight: 800; box-shadow: var(--shadow-sm); }
+  .wiz-done h3 { margin: 0 0 8px; font-size: 19px; }
+  .wiz-done p { margin: 0 auto 10px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; max-width: 400px; }
+  .wiz-done .wd-note { font-size: 11.5px; color: var(--ink-faint); }
+
+  /* workspace unlock list */
+  .unlock-list { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+  .unlock-list li { display: flex; align-items: center; gap: 12px; }
+  .ul-ico { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; flex-shrink: 0;
+    font-size: 17px; background: var(--surface-2); border: 1px solid var(--line); }
+  .unlock-list b { font-size: 13.5px; display: block; }
+  .unlock-list small { font-size: 11.5px; color: var(--ink-soft); display: block; margin-top: 1px; line-height: 1.4; }
+
+  /* toast */
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px);
+    z-index: 70; background: var(--ink); color: var(--surface); padding: 13px 18px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 650; line-height: 1.5; box-shadow: var(--shadow); max-width: 440px;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast b { font-weight: 800; }
+  .toast small { opacity: .82; font-size: 11px; font-weight: 600; }
+
+  @media (max-width: 720px) { .flag-band { grid-template-columns: 1fr; } }
+
+  .hide { display: none; }
+  h2.view-h { font-size: 16px; margin: 4px 0 8px; }
+  h2.view-h span { color: var(--ink-faint); font-weight: 600; font-size: 13px; }
+  .view-lead { color: var(--ink-soft); font-size: 13.5px; line-height: 1.55; margin: 0 0 18px; max-width: 640px; }
+
+  @media (max-width: 1080px) { .board { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 720px) {
+    body { grid-template-columns: 1fr; }
+    .side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; }
+    .side-foot { display: none; }
+    .board { grid-template-columns: 1fr; }
+    .oc-body { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="side">
+    <div class="brand">
+      <div class="mark">S</div>
+      <div><b>Shaula</b><small>your office</small></div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button data-view="today" aria-current="true"><span class="ico">☀</span> Today <span class="count" id="c-today"></span></button>
+      <button data-view="work"><span class="ico">▦</span> The work</button>
+      <button data-view="routines"><span class="ico">⟳</span> Routines</button>
+      <button data-view="staff"><span class="ico">☺</span> Your staff</button>
+      <button data-view="setup"><span class="ico">✓</span> Setup <span class="count" id="c-setup"></span></button>
+    </nav>
+
+    <div class="side-foot">
+      <div class="pledge"><span class="dot">●</span> We house nothing. Your client info never leaves your practice. Every word is fact-checked before it appears.</div>
+      <div class="credit">Built on <a href="https://github.com/NousResearch/Hermes" target="_blank" rel="noopener">Hermes</a> by Nous Research · MIT</div>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main">
+    <div class="top">
+      <div>
+        <h1 id="view-title">Good to see you</h1>
+        <div class="sub" id="view-sub">Here's what your office got done and what needs your okay.</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="themes" id="themes">
+        <span>Skin</span>
+        <div class="swatch" data-theme="daylight"  title="Daylight"  style="background:linear-gradient(135deg,#4f6df5,#7c5cff)" aria-pressed="true"></div>
+        <div class="swatch" data-theme="sunrise"   title="Sunrise"   style="background:linear-gradient(135deg,#ff6f5e,#ff9248)"></div>
+        <div class="swatch" data-theme="meadow"    title="Meadow"    style="background:linear-gradient(135deg,#2f9e63,#5bbf8a)"></div>
+        <div class="swatch" data-theme="bubblegum" title="Bubblegum" style="background:linear-gradient(135deg,#e84fae,#8b5cf6)"></div>
+      </div>
+    </div>
+
+    <div class="preview-note">
+      <b>Preview.</b> The websites below are real, already built. The items waiting for your okay are sample drafts —
+      they fill with your real work once your office is connected.
+    </div>
+
+    <!-- ===== TODAY (the front door = approval feed) ===== -->
+    <section id="view-today">
+      <!-- setup checklist (shows until done) -->
+      <div class="setup-strip" id="setup-strip">
+        <div class="sh"><b>Getting your office set up</b> <span class="prog" id="setup-prog"></span></div>
+        <div class="steps" id="setup-steps"></div>
+      </div>
+
+      <div class="feed-sec">
+        <div class="feed-h"><b>Waiting for your okay</b> <span>nothing happens until you say so</span></div>
+        <div class="feed" id="feed-waiting"></div>
+      </div>
+
+      <div class="feed-sec">
+        <div class="feed-h"><b>Ready to look at</b> <span>already done — just for your eyes</span></div>
+        <div class="feed" id="feed-ready"></div>
+      </div>
+    </section>
+
+    <!-- ===== THE WORK (demoted board) ===== -->
+    <section id="view-work" class="hide">
+      <h2 class="view-h">The work board <span>— the same to-do list, laid out</span></h2>
+      <p class="view-lead">This is the behind-the-scenes view: every job your office is on, in plain columns.
+        Most days you'll live on <b>Today</b> and never need this — it's here for when you want to see exactly
+        what's moving.</p>
+      <div class="board" id="board"></div>
+    </section>
+
+    <!-- ===== ROUTINES ===== -->
+    <section id="view-routines" class="hide">
+      <h2 class="view-h">What your office runs <span>— the standing jobs, on repeat</span></h2>
+      <p class="view-lead">These are the routines your office can run for you. Each one still stops for your
+        okay before anything reaches the world or a client — nothing goes out on its own. They're grouped by
+        what they need: the marketing ones touch no client info and come first; the clinical ones touch
+        client info and get set up last, behind your say-so.</p>
+      <div id="flagship"></div>
+      <div id="routines"></div>
+    </section>
+
+    <!-- ===== STAFF ===== -->
+    <section id="view-staff" class="hide">
+      <h2 class="view-h">Your staff <span>— each one does a single job</span></h2>
+      <p class="view-lead">Think of these as the people you'd hire for the front of house and the back office —
+        except they're always on and they never touch your client records without your say-so.</p>
+      <div class="grid" id="staff"></div>
+    </section>
+
+    <!-- ===== SETUP ===== -->
+    <section id="view-setup" class="hide">
+      <h2 class="view-h">Finish setting up <span>— three steps, do them whenever</span></h2>
+      <p class="view-lead">No rush and nothing's locked — you can change any of this later. The office already
+        works with sample data so you can poke around first.</p>
+      <div class="steps" id="setup-steps-full"></div>
+    </section>
+  </main>
+
+  <!-- ===================== ASK SHAULA — persistent entry point (every screen) ===================== -->
+  <button class="ask-fab" id="ask-fab" aria-label="Ask Shaula">
+    <span class="fab-mark">S</span> Ask Shaula <span class="fab-pulse"></span>
+  </button>
+
+  <!-- ===================== ASK SHAULA — dedicated chat surface ===================== -->
+  <div class="chat-wrap" id="chat-wrap" role="dialog" aria-label="Chat with Shaula">
+    <div class="chat-top">
+      <div class="cmark">S</div>
+      <div class="ct-txt"><b>Ask Shaula</b><small>Tell your office what you need — in plain words</small></div>
+      <button class="ct-close" id="chat-close">✕ Back to office</button>
+    </div>
+    <div class="chat-scroll" id="chat-scroll">
+      <div class="chat-inner" id="chat-thread"><!-- empty state injected; messages append --></div>
+    </div>
+    <div class="chat-bar">
+      <div class="cb-inner">
+        <textarea id="chat-input" rows="1" placeholder="Ask for anything — “write this week's blog”, “draft a welcome email”…"></textarea>
+        <button class="send" id="chat-send" aria-label="Send">↑</button>
+      </div>
+      <div class="cb-note">Live — Shaula answers on your practice's own Vertex brain. Bigger asks get routed to your staff and come back for your okay.</div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL — schedule picker · website wizard · workspace unlock ===================== -->
+  <div class="modal-back" id="modal-back" role="dialog" aria-modal="true">
+    <div class="modal" id="modal"><!-- head + body + foot injected by JS per flow --></div>
+  </div>
+
+  <!-- ===================== TOAST — run-once / schedule confirmations ===================== -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =================================================================
+   HONEST DATA — staff/sites pulled from the repo (profiles/, sites/).
+   The "waiting" items are sample outputs of the one runnable routine
+   today (workflows/templates/weekly-blog.json) — flagged sample.
+   ================================================================= */
+
+const STAFF = [
+  { id:"orchestrator",     name:"Office manager",   ready:true,  phi:false, plain:"Takes whatever you ask for and hands the right pieces to the right staff. The one keeping everyone pointed the same way." },
+  { id:"website",          name:"Website builder",  ready:true,  phi:false, plain:"Builds and updates your practice website from true facts about you — then makes sure people can actually find it online." },
+  { id:"blog",             name:"Blog writer",      ready:true,  phi:false, plain:"Drafts honest, plain-language blog posts you can finish and publish. Never makes a claim it can't back up." },
+  { id:"marketer",         name:"Marketer",         ready:true,  phi:false, plain:"Turns one blog post into short social posts and the bits that help search engines and AI recommend you. Honest, never clickbait." },
+  { id:"analytics",        name:"Numbers person",   ready:true,  phi:false, plain:"Watches your website and booking numbers, tells you when something real changed, and stays quiet when nothing did." },
+  { id:"reviewer",         name:"Fact-checker",     ready:true,  phi:false, plain:"Reads everything before it goes out and blocks anything that over-promises or isn't true. Your safety net." },
+  { id:"strategist",       name:"Topic picker",     ready:true,  phi:false, plain:"Decides what to write next from your real search demand — your own Search Console queries, your seed topics, your services. Picks the topic; never invents a traffic number; hands it to the blog writer." },
+  { id:"distributor",      name:"Backlink outreach",ready:true,  phi:false, plain:"Turns one post you've already published into honest backlinks — a Reddit or Quora answer, a Medium repost, a LinkedIn article, a HARO pitch. Drafts only; you post each one yourself, so it's never spam." },
+  { id:"frontdesk",        name:"Front desk",       ready:false, phi:true,  plain:"Will handle scheduling, reminders, and filling cancelled slots from your waitlist. Touches client info, so it stays off until you set it up — and you approve anything that reaches a client." },
+  { id:"workspace",        name:"Your Google",      ready:false, phi:true,  plain:"Will run inside your own Google (email, calendar, docs) so the office can actually do things. Connects with your permission; your info stays in your Google." },
+  { id:"scribe",           name:"Note helper",      ready:false, phi:true,  plain:"Will draft your progress notes (SOAP/DAP/BIRP) and let you edit before anything is saved. Touches client info, so it's off until you turn it on." },
+  { id:"clinical-admin",   name:"Paperwork helper", ready:false, phi:true,  plain:"Will draft treatment plans, prior-auth letters, and safety plans for you to review. Off until you set it up." },
+  { id:"customer-service", name:"Client check-ins", ready:false, phi:true,  plain:"Will send the friendly logistics notes you write (appointment stuff, encouragement) — never clinical advice. Off until you turn it on." },
+  { id:"biller",           name:"Billing helper",   ready:false, phi:true,  plain:"Will sort insurance denials, draft appeal letters, and prep superbills for your okay. Off until you set it up." },
+];
+
+// sites/ — real generated static sites on disk.
+const SITES = [
+  { id:"cedar-sage",        name:"Cedar & Sage",       kind:"Solo practice" },
+  { id:"couples-riverbend", name:"Riverbend Couples",  kind:"Couples practice" },
+  { id:"northstar-denver",  name:"Northstar Denver",   kind:"Group practice" },
+];
+
+// Sample outputs of the weekly-blog routine — the no-PHI marketing lane.
+// The approval feed is live: renderWaiting() pulls real packages from
+// GET /api/pending-approvals. WAITING holds the cards from the last fetch so
+// onFeedClick can map a card back to its board + review task id.
+let WAITING = [];
+
+const SETUP = [
+  { id:"meet",    state:"done", title:"Meet your office", note:"14 staff are hired and ready. You're looking at them now.", action:null },
+  { id:"google",  state:"now",  title:"Connect your Google", note:"So your office can work alongside your email and calendar. Your client info stays inside your own Google.", action:"Connect Google" },
+  { id:"approve", state:"todo", title:"Approve your first thing", note:"Take a look at the blog post waiting above and give it your okay (or park it).", action:"Go to Today" },
+];
+
+/* ---------- helpers ---------- */
+function avaColor(id){ let h=0; for(const c of id) h=(h*31 + c.charCodeAt(0)) % 360; return `hsl(${h} 62% 55%)`; }
+function staffById(id){ return STAFF.find(s=>s.id===id) || {name:id, id}; }
+function ava(id){ const s=staffById(id); const i=s.name.replace(/[^A-Za-z]/g,"").slice(0,1).toUpperCase();
+  return `<span class="ava" style="background:${avaColor(s.id)}">${i}</span>`; }
+
+/* ---------- TODAY: approval feed ---------- */
+function waitingCount(){ return document.querySelectorAll('#feed-waiting .oc:not(.resolved)').length; }
+function refreshCounts(){
+  const w = waitingCount();
+  const ct = document.getElementById("c-today");
+  ct.textContent = w; ct.classList.toggle("zero", w===0);
+  // setup count = unfinished steps
+  const remaining = SETUP.filter(s=>s.state!=="done").length;
+  const cs = document.getElementById("c-setup");
+  cs.textContent = remaining; cs.classList.toggle("zero", remaining===0);
+}
+
+// Turn one /api/pending-approvals package into an okay-card. The draft task's
+// summary carries headline+body+disclaimer; its first line is the headline.
+function pkgToCard(p){
+  const items = p.package || [];
+  const pick = (re, asg) => items.find(x => re.test((x.title||"").trim()))
+                          || (asg ? items.find(x => x.assignee===asg) : null);
+  const draft   = pick(/^draft\b/i, "blog");
+  const teasers = pick(/teaser|social/i, null);
+  const geo     = pick(/geo|schema|seo/i, null);
+  const post   = ((draft   && draft.summary)   || "").trim();   // headline + body + disclaimer
+  const social = ((teasers && teasers.summary) || "").trim();   // the 3 teasers
+  const seo    = ((geo     && geo.summary)     || "").trim();   // meta + JSON-LD
+  const headline = post
+    ? (post.split("\n").find(l => l.trim()) || p.title || "A post is ready")
+    : (p.title || "A package is ready");
+  const needs = /needs-changes/i.test(p.verdict || "");
+  const preview = items.map(it => `■ ${it.title}\n\n${it.summary || ""}`).join("\n\n———\n\n");
+  return { id: p.board, task_id: p.task_id, ico: "✎", icoColor: "var(--brand)",
+    title: esc(headline).slice(0, 160), by: "blog",
+    note: needs ? "Your fact-checker flagged something to look at before you use this."
+                : "Written and fact-checked — copy it out whenever you're ready.",
+    sample: false, preview: esc(preview),
+    post, social, seo };   // raw text the Copy buttons hand to the clipboard
+}
+async function renderWaiting(){
+  const wrap = document.getElementById("feed-waiting");
+  let pending = [];
+  try {
+    const r = await fetch("/api/pending-approvals");
+    const j = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(j.detail || j.error || ("HTTP "+r.status));
+    pending = j.pending || [];
+  } catch(err){
+    wrap.innerHTML = `<div class="empty">Couldn't reach your office — is it running?<br><small>${esc(String(err.message||err))}</small></div>`;
+    return;
+  }
+  WAITING = pending.map(pkgToCard);
+  if (!WAITING.length){ wrap.innerHTML = `<div class="empty">All clear — nothing needs you right now. 🎉</div>`; refreshCounts(); return; }
+  wrap.innerHTML = WAITING.map((c,i)=>{
+    const who = staffById(c.by);
+    const flag = c.sample ? `<span class="oc-flag sample">sample</span>` : `<span class="oc-flag real">ready</span>`;
+    return `<div class="oc ${i===0?'first':''}" data-id="${c.id}" data-task="${c.task_id||''}">
+      <div class="oc-body">
+        <div class="oc-ico" style="background:${c.icoColor}">${c.ico}</div>
+        <div class="oc-main">
+          <div class="oc-title">${c.title}</div>
+          <div class="oc-by">${ava(c.by)}<small>${who.name} · ${c.note}</small> ${flag}</div>
+        </div>
+      </div>
+      <div class="oc-acts">
+        <button class="btn ok" data-act="copy" data-copy="post" style="background:var(--brand);color:#fff;border-color:var(--brand)">⧉ Copy post</button>
+        ${c.social ? `<button class="btn look" data-act="copy" data-copy="social">⧉ Copy social</button>` : ``}
+        <button class="btn look"  data-act="look">Take a look</button>
+        <button class="btn ok"    data-act="approve">Done — clear it</button>
+        <button class="btn no"    data-act="park">Not now</button>
+        ${i===0 ? `<span style="font-size:12px;color:var(--ink-faint);font-weight:600;margin-left:4px">👈 copy it, then paste into your site</span>` : ``}
+      </div>
+      <div class="oc-prev">${c.preview}</div>
+      <div class="oc-resolved"><span class="rico"></span><span class="rtxt"></span><button class="undo" data-act="undo">undo</button></div>
+    </div>`;
+  }).join("");
+  refreshCounts();
+}
+
+// Copy to clipboard: real Clipboard API in a focused secure context (127.0.0.1
+// counts), with a textarea+execCommand fallback for everything else. Returns ok.
+async function copyText(t){
+  if (!t) return false;
+  try {
+    if (navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(t); return true; }
+  } catch(_){ /* fall through to legacy path */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = t; ta.setAttribute("readonly","");
+    ta.style.position = "fixed"; ta.style.top = "-1000px"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch(_){ return false; }
+}
+
+async function onFeedClick(e){
+  const btn = e.target.closest("[data-act]"); if(!btn) return;
+  const oc = e.target.closest(".oc"); if(!oc) return;
+  const act = btn.dataset.act;
+  if (act==="copy"){
+    const card = WAITING.find(c => c.id === oc.dataset.id) || {};
+    const which = btn.dataset.copy;
+    const text = which==="social" ? card.social : which==="seo" ? card.seo : card.post;
+    if (!text){ toast("Nothing to copy here yet."); return; }
+    const ok = await copyText(text);
+    toast(ok
+      ? (which==="social" ? "Social posts copied — paste into Instagram or TikTok."
+                          : "Post copied — paste it into your website editor.")
+      : "Couldn't reach the clipboard — open “Take a look” and copy the text by hand.");
+    return;
+  }
+  if (act==="look"){
+    oc.classList.toggle("open");
+    btn.textContent = oc.classList.contains("open") ? "Hide" : "Take a look";
+    return;
+  }
+  if (act==="approve" || act==="park"){
+    const real = !!oc.dataset.task;
+    if (real){
+      btn.disabled = true;
+      const ep = act==="approve" ? "/api/approve" : "/api/reject";
+      try {
+        const r = await fetch(ep, {method:"POST", headers:{"content-type":"application/json"},
+          body: JSON.stringify({ board: oc.dataset.id, task_id: oc.dataset.task })});
+        const j = await r.json().catch(()=>({}));
+        if (!r.ok || j.ok===false) throw new Error(j.detail || j.error || ("HTTP "+r.status));
+      } catch(err){ btn.disabled = false; toast(`Couldn't ${act==="approve"?"approve":"park"} it: ${esc(String(err.message||err))}`); return; }
+    }
+    oc.classList.remove("open","first");
+    oc.classList.add("resolved", act==="approve" ? "approved" : "parked");
+    const txt = act==="approve"
+      ? (real ? "Done — cleared off your desk. (Copy it first if you haven't — there's no copy after this.)" : "Done — cleared. (Sample, so nothing was saved.)")
+      : (real ? "Parked — archived, so it won't come back." : "Parked. It'll wait here until you want it.");
+    oc.querySelector(".rico").textContent = act==="approve" ? "✓" : "⏸";
+    oc.querySelector(".rtxt").textContent = txt;
+    refreshCounts();
+    return;
+  }
+  if (act==="undo"){
+    if (oc.dataset.task){ renderWaiting(); return; }
+    oc.classList.remove("resolved","approved","parked");
+    refreshCounts();
+    return;
+  }
+}
+
+function renderReady(){
+  document.getElementById("feed-ready").innerHTML = SITES.map(s=>`
+    <div class="oc">
+      <div class="oc-body">
+        <div class="oc-ico" style="background:var(--ok)">✦</div>
+        <div class="oc-main">
+          <div class="oc-title">Your ${s.name} website is built — take a look.</div>
+          <div class="oc-by">${ava('website')}<small>Website builder · ${s.kind} site, ready to share.</small> <span class="oc-flag real">ready</span></div>
+        </div>
+      </div>
+      <div class="oc-acts">
+        <a class="btn look" href="../sites/${s.id}/index.html" target="_blank" rel="noopener">Open the site ↗</a>
+      </div>
+    </div>`).join("");
+}
+
+/* ---------- setup checklist ---------- */
+function stepHTML(s){
+  const mark = s.state==="done" ? "✓" : (s.state==="now" ? "→" : "");
+  const act = s.action
+    ? `<div class="act"><button class="btn ${s.state==='now'?'look':'ghost'}" data-setup="${s.id}">${s.action}</button></div>`
+    : "";
+  return `<div class="stepline ${s.state}">
+    <span class="tick">${mark}</span>
+    <div class="txt"><b>${s.title}</b><p>${s.note}</p></div>${act}
+  </div>`;
+}
+function renderSetup(){
+  const html = SETUP.map(stepHTML).join("");
+  document.getElementById("setup-steps").innerHTML = html;
+  document.getElementById("setup-steps-full").innerHTML = html;
+  const done = SETUP.filter(s=>s.state==="done").length;
+  document.getElementById("setup-prog").textContent = `${done} of ${SETUP.length} done`;
+  // hide the Today strip once everything's done
+  document.getElementById("setup-strip").classList.toggle("hide", done===SETUP.length);
+}
+function onSetupClick(e){
+  const b = e.target.closest("[data-setup]"); if(!b) return;
+  const id = b.dataset.setup;
+  if (id==="approve"){ show("today"); document.getElementById("feed-waiting").scrollIntoView({behavior:"smooth"}); return; }
+  if (id==="google"){
+    // honest: not wired in this preview
+    b.outerHTML = `<span style="font-size:12px;color:var(--ink-faint);font-weight:600">Not wired in this preview yet — this is where Connect Google would open.</span>`;
+    return;
+  }
+}
+
+/* ---------- THE WORK (demoted board, plain labels) ---------- */
+function workCard(c){
+  const who = staffById(c.assignee);
+  const flag = c.sample ? `<span class="flag s">sample</span>` : `<span class="flag r">done</span>`;
+  const link = c.link ? ` <a class="link" href="${c.link}" target="_blank" rel="noopener">open ↗</a>` : "";
+  return `<div class="card ${c.sample?'sample':''}">
+    <div class="ttl">${c.title}</div>
+    <div class="meta"><span class="who">${ava(c.assignee)}<small>${who.name}</small></span>${flag}${link}</div>
+  </div>`;
+}
+function renderWork(){
+  const data = {
+    next:    [ {title:"Write this week's blog post", assignee:"blog", sample:true},
+               {title:"Help people find the new post online", assignee:"marketer", sample:true} ],
+    okay:    [ {title:"3 social posts — ready for your okay", assignee:"marketer", sample:true} ],
+    working: [ {title:"Turn the post into a web page", assignee:"website", sample:true} ],
+    done:    SITES.map(s=>({title:s.name+" website — built", assignee:"website", sample:false, link:"../sites/"+s.id+"/index.html"})),
+  };
+  const cols = [
+    { key:"next",    label:"Up next",        dot:"var(--col-todo)" },
+    { key:"okay",    label:"Needs your okay", dot:"var(--col-triage)" },
+    { key:"working", label:"Working on it",   dot:"var(--col-doing)" },
+    { key:"done",    label:"Done",            dot:"var(--col-done)" },
+  ];
+  document.getElementById("board").innerHTML = cols.map(col=>{
+    const items = data[col.key] || [];
+    return `<div class="col">
+      <div class="col-head"><span class="col-dot" style="background:${col.dot}"></span><b>${col.label}</b><span class="n">${items.length}</span></div>
+      <div class="cards">${items.map(workCard).join("")}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- ROUTINES (the A–L box library, de-jargoned + honest) ----------
+   Grounded in docs/KANBAN_WORKFLOWS.md. status: "build" = active build
+   (blog + website skills exist), "plan" = designed, not built yet.
+   Data sensitivity comes from the group: market=no PHI, front=needs Google, clinical=PHI. */
+const ROUTINES = { groups: [
+  { key:"market", title:"Marketing & web", sub:"no client info — these come first", items:[
+    { ico:"✎", color:"var(--brand)", name:"Weekly blog + social posts", status:"ready", runnable:true, tmpl:"weekly-blog",
+      staff:["blog","marketer","reviewer","website"],
+      plain:"Writes one honest blog post a week, fact-checks it, then turns it into short posts for Instagram and TikTok plus the web page to hold it." },
+    { ico:"↗", color:"var(--col-doing)", name:"Growth engine — topic → post → measure", status:"ready", runnable:true, tmpl:"growth-engine",
+      staff:["strategist","blog","website","marketer","reviewer","analytics"],
+      plain:"Picks one topic from your real search demand, drafts and stages the post, adds the search-and-AI bits plus three social teasers, fact-checks it, then logs what actually moved. Nothing publishes until you say go." },
+    { ico:"⇄", color:"var(--ok)", name:"Earned backlinks — honest outreach", status:"ready", runnable:true, tmpl:"distribution-engine",
+      staff:["distributor","reviewer"],
+      plain:"Takes one post you've already published and drafts platform-native versions — a Reddit or Quora answer, a Medium repost, a LinkedIn article, a HARO pitch — so you earn real backlinks. Draft-only: a person posts each one. No spam, no link swaps." },
+    { ico:"❑", color:"var(--accent)", name:"Monthly marketing batch", status:"plan",
+      staff:["orchestrator","blog","marketer"],
+      plain:"Once a month, plans a batch — a few blog topics, a dozen social posts, a newsletter — and drafts them all for your okay." },
+    { ico:"⌂", color:"var(--col-doing)", name:"Website refresh", status:"plan",
+      staff:["website"],
+      plain:"Updates a page on your site — a new service, a new FAQ — and waits for your okay before anything goes live." },
+    { ico:"✦", color:"var(--ok)", name:"Psychoeducation handouts", status:"plan",
+      staff:["marketer","reviewer"],
+      plain:"Writes plain-language client handouts on a topic you pick — every claim cited or left out. Public info only, no client records." },
+    { ico:"▤", color:"var(--warn)", name:"Monthly numbers digest", status:"plan",
+      staff:["analytics"],
+      plain:"Once a month, tells you what actually changed in your website and booking numbers — and stays quiet when nothing did." },
+  ]},
+  { key:"front", title:"Front office", sub:"needs your Google connected first", items:[
+    { ico:"☎", color:"var(--brand)", name:"Scheduling & waitlist fill", status:"plan",
+      staff:["frontdesk"],
+      plain:"When someone cancels, finds the right person on your waitlist and drafts the offer — you approve before it sends." },
+    { ico:"✉", color:"var(--accent)", name:"New-client intake", status:"plan",
+      staff:["frontdesk","workspace"],
+      plain:"Sends the intake link, collects what comes back, files it in your own Google Drive, and tells you it's ready." },
+  ]},
+  { key:"clinical", title:"Clinical & billing", sub:"touches client info — set up last, always behind your okay", items:[
+    { ico:"✐", color:"var(--col-doing)", name:"Progress-note drafting", status:"plan",
+      staff:["scribe"],
+      plain:"Drafts a SOAP / DAP / BIRP note from a session for you to edit. Nothing is saved until you confirm it." },
+    { ico:"$", color:"var(--ok)", name:"Insurance denials & appeals", status:"plan",
+      staff:["biller"],
+      plain:"Reads a denial, works out why, and drafts the appeal letter for your review. No clearinghouse, no extra license needed." },
+    { ico:"✒", color:"var(--accent)", name:"Letters: prior-auth, treatment, safety", status:"plan",
+      staff:["clinical-admin"],
+      plain:"Drafts prior-authorization letters, treatment plans, and safety plans for you to review and sign." },
+    { ico:"♡", color:"var(--brand)", name:"Client check-ins", status:"plan",
+      staff:["customer-service"],
+      plain:"Sends the friendly logistics notes you've approved — appointment nudges, encouragement. Never clinical advice.",
+      note:"<b>Extra safety:</b> a crisis tripwire stops the AI cold and alerts you instead — it never answers a client in crisis on its own. This routine has to pass a 100-case safety test before it can go live." },
+  ]},
+]};
+
+function renderRoutines(){
+  document.getElementById("routines").innerHTML = ROUTINES.groups.map(g=>{
+    const dataBadge = g.key==="clinical" ? `<span class="badge lock">handles client info</span>`
+      : g.key==="front" ? `<span class="badge nophi">needs your Google</span>`
+      : `<span class="badge nophi">no client info</span>`;
+    return `<div class="r-group">
+      <div class="r-group-h"><b>${g.title}</b> <span>${g.sub}</span></div>
+      <div class="grid">${g.items.map(r=>{
+        const statusBadge = r.status==="ready"
+          ? `<span class="badge ready">● Ready to run</span>`
+          : r.status==="build"
+          ? `<span class="badge build">Being built now</span>`
+          : `<span class="badge plan">Planned</span>`;
+        const staff = r.staff.map(ava).join("")
+          + `<small>${r.staff.map(id=>staffById(id).name).join(", ")}</small>`;
+        // Run-once / Schedule only on routines that are actually runnable today.
+        const acts = r.runnable
+          ? `<div class="tile-acts">
+               <button class="btn run sm" data-run="${r.name}">▷ Run once</button>
+               <button class="btn sched sm" data-sched="${r.name}">◷ Schedule</button>
+               <span class="ta-note">each run waits for your okay</span>
+             </div>`
+          : ``;
+        return `<div class="tile">
+          <div class="tile-head"><div class="r-ico" style="background:${r.color}">${r.ico}</div><b>${r.name}</b></div>
+          <p>${r.plain}</p>
+          <div class="row"><span class="r-staff">${staff}</span>${statusBadge}${dataBadge}</div>
+          ${r.note ? `<div class="r-note">${r.note}</div>` : ``}
+          ${acts}
+        </div>`;
+      }).join("")}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- STAFF ---------- */
+function renderStaff(){
+  document.getElementById("staff").innerHTML = STAFF.map(s=>`
+    <div class="tile">
+      <div class="tile-head">${ava(s.id)}<b>${s.name}</b></div>
+      <p>${s.plain}</p>
+      <div class="row">
+        ${s.ready ? `<span class="badge ready">● Ready now</span>` : `<span class="badge soon">○ Off until you set it up</span>`}
+        ${s.phi ? `<span class="badge nophi">handles client info</span>` : `<span class="badge nophi">no client info</span>`}
+      </div>
+    </div>`).join("");
+}
+
+/* ---------- view switching ---------- */
+const TITLES = {
+  today: ["Good to see you", "Here's what your office got done and what needs your okay."],
+  work:  ["The work", "Everything your office is on, laid out."],
+  routines: ["What your office runs", "The standing jobs your office repeats — each waits for your okay."],
+  staff: ["Your staff", "Fourteen specialists — each does one job."],
+  setup: ["Setup", "Three quick steps, whenever you're ready."],
+};
+function show(view){
+  for (const b of document.querySelectorAll("#nav button"))
+    b.setAttribute("aria-current", String(b.dataset.view===view));
+  for (const id of ["today","work","routines","staff","setup"])
+    document.getElementById("view-"+id).classList.toggle("hide", id!==view);
+  document.getElementById("view-title").textContent = TITLES[view][0];
+  document.getElementById("view-sub").textContent   = TITLES[view][1];
+}
+document.getElementById("nav").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return; show(b.dataset.view);
+});
+
+/* ---------- theme switching ---------- */
+document.getElementById("themes").addEventListener("click", e=>{
+  const sw = e.target.closest(".swatch"); if(!sw) return;
+  document.documentElement.dataset.theme = sw.dataset.theme;
+  for (const s of document.querySelectorAll(".swatch")) s.setAttribute("aria-pressed", String(s===sw));
+});
+
+/* ---------- ASK SHAULA: dedicated chat surface ----------
+   Persistent "Ask Shaula" button (every screen) opens this full page.
+   Replies are scripted + honest: they show the ask getting ROUTED to the
+   right staff member, and that nothing reaches a client/the world without
+   the therapist's okay. No fake LLM — flagged "preview" in the bar. */
+const CHAT_EMPTY = `
+  <div class="chat-empty">
+    <div class="big">S</div>
+    <h3>What do you need?</h3>
+    <p>Tell your office in plain words. I'll hand it to the right person and bring the work back for your okay — nothing goes out on its own.</p>
+    <div class="chat-chips">
+      <button class="chip" data-ask="Write this week's blog post"><span class="cico">✎</span><span><b>Write this week's blog post</b><small>goes to your blog writer + fact-checker</small></span></button>
+      <button class="chip" data-ask="Draft a welcome email for a new client"><span class="cico">✉</span><span><b>Draft a welcome email for a new client</b><small>you approve before it sends</small></span></button>
+      <button class="chip" data-ask="Fill my Tuesday cancellation from the waitlist"><span class="cico">☎</span><span><b>Fill my Tuesday cancellation from the waitlist</b><small>front desk — needs your Google connected</small></span></button>
+    </div>
+  </div>`;
+
+function shaulaReply(text){
+  const t = text.toLowerCase();
+  if (t.includes("blog"))
+    return {body:"On it. Your <b>blog writer</b> drafts an honest, plain-language post and your <b>fact-checker</b> reviews every claim. It'll land in “Waiting for your okay” on Today — nothing publishes until you approve it.", routed:"Blog writer · Fact-checker"};
+  if (t.includes("welcome") || t.includes("email"))
+    return {body:"I'll draft a warm welcome email for you to read and edit. Because it goes to a client, you approve it before anything sends — I never message a client on my own.", routed:"Front desk · your okay required"};
+  if (t.includes("cancel") || t.includes("waitlist") || t.includes("schedul"))
+    return {body:"That's your <b>front desk's</b> job. It touches client info, so it stays off until you connect your Google. Once it's on, I'd find the right person on your waitlist and draft the offer for your okay — before it ever sends.", routed:"Front desk · off until Google connected"};
+  if (t.includes("note") || t.includes("soap") || t.includes("dap") || t.includes("session"))
+    return {body:"Your <b>note helper</b> can draft a SOAP/DAP/BIRP note for you to edit. It touches client info, so it's off until you turn it on — and nothing is saved until you confirm it.", routed:"Note helper · off until you set it up"};
+  if (t.includes("denial") || t.includes("appeal") || t.includes("insurance") || t.includes("bill"))
+    return {body:"Your <b>billing helper</b> can read the denial, work out why, and draft the appeal letter for your review. Off until you set it up — no clearinghouse, no extra license needed.", routed:"Billing helper · your okay required"};
+  return {body:"In your real office I'd route this to the right staff member and bring back something for your okay. This preview uses scripted replies, so I can't actually run it here yet — but this is exactly where the answer would appear.", routed:"Office manager"};
+}
+
+let chatStarted = false;
+function openChat(){
+  document.getElementById("chat-wrap").classList.add("open");
+  if (!chatStarted) document.getElementById("chat-thread").innerHTML = CHAT_EMPTY;
+  setTimeout(()=>document.getElementById("chat-input").focus(), 50);
+}
+function closeChat(){ document.getElementById("chat-wrap").classList.remove("open"); }
+function addMsg(role, html, routed){
+  if (!chatStarted){ document.getElementById("chat-thread").innerHTML = ""; chatStarted = true; }
+  const ava = role==="me" ? "Y" : "S";
+  const routedHTML = routed ? `<div class="routed">→ ${routed}</div>` : "";
+  document.getElementById("chat-thread").insertAdjacentHTML("beforeend",
+    `<div class="msg ${role}"><div class="b-ava">${ava}</div><div class="bubble">${html}${routedHTML}</div></div>`);
+  const sc = document.getElementById("chat-scroll"); sc.scrollTop = sc.scrollHeight;
+}
+function addThinking(){
+  const id = "think-"+Date.now();
+  document.getElementById("chat-thread").insertAdjacentHTML("beforeend",
+    `<div class="msg shaula" id="${id}"><div class="b-ava">S</div><div class="bubble"><i style="opacity:.6">…the office is thinking</i></div></div>`);
+  const sc = document.getElementById("chat-scroll"); sc.scrollTop = sc.scrollHeight;
+  return id;
+}
+function removeThinking(id){ const el=document.getElementById(id); if(el) el.remove(); }
+async function sendChat(text){
+  const msg = (text||"").trim(); if(!msg) return;
+  // Gather the prior turns so Shaula has the conversation in context (not amnesiac).
+  const history = [...document.querySelectorAll("#chat-thread .msg")].map(m=>({
+    role: m.classList.contains("me") ? "user" : "model",
+    text: (m.querySelector(".bubble")?.innerText || "").trim()
+  })).filter(h => h.text && !/the office is thinking/.test(h.text)).slice(-8);
+  addMsg("me", msg.replace(/</g,"&lt;").replace(/>/g,"&gt;"));
+  document.getElementById("chat-input").value = "";
+  const tid = addThinking();
+  try {
+    // LIVE: the therapist's own Vertex brain, via the shaula-office /api/chat endpoint.
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ message: msg, history })
+    });
+    if (!res.ok) throw new Error("http " + res.status);
+    const data = await res.json();
+    removeThinking(tid);
+    const safe = String(data.reply || "(no reply)")
+      .replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+    addMsg("shaula", safe);
+  } catch (err) {
+    // Graceful fallback: scripted preview (e.g. opened as a bare file:// with no server).
+    removeThinking(tid);
+    const r = shaulaReply(msg);
+    addMsg("shaula", r.body, r.routed);
+  }
+}
+document.getElementById("ask-fab").addEventListener("click", openChat);
+document.getElementById("chat-close").addEventListener("click", closeChat);
+document.getElementById("chat-send").addEventListener("click", ()=>sendChat(document.getElementById("chat-input").value));
+document.getElementById("chat-input").addEventListener("keydown", e=>{
+  if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendChat(e.target.value); }
+});
+document.getElementById("chat-thread").addEventListener("click", e=>{
+  const chip = e.target.closest("[data-ask]"); if(!chip) return; sendChat(chip.dataset.ask);
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeChat(); });
+
+/* =================================================================
+   RUN-ONCE · SCHEDULE · WEBSITE BUILDER — preview, scripted + honest.
+   The real plumbing exists (workflows/cli.py emit --dispatch builds AND
+   runs a template; Hermes has a cron tool). These controls SHOW that
+   flow; in this preview they confirm with a toast and never shell out.
+   Every confirmation says so. Nothing reaches a client or the world
+   without the therapist's okay — scheduling only sets WHEN work STARTS.
+   ================================================================= */
+function esc(s){ return (s||"").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---- toast ---- */
+let toastTimer = null;
+function toast(html){
+  const t = document.getElementById("toast");
+  t.innerHTML = html;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 5000);
+}
+
+/* ---- generic modal shell ---- */
+function setModal(html){ document.getElementById("modal").innerHTML = html; }
+function openModal(html){ setModal(html); document.getElementById("modal-back").classList.add("open"); }
+function closeModal(){ document.getElementById("modal-back").classList.remove("open"); }
+
+/* ---- run once (live: weekly-blog dispatches a real workflow) ---- */
+function routineByName(name){ for (const g of ROUTINES.groups) for (const it of g.items) if (it.name===name) return it; return null; }
+let runSel = { name:"", tmpl:"weekly-blog", busy:false };
+function runHTML(){
+  return `
+    <div class="modal-head"><b>Run “${esc(runSel.name)}” once</b><button class="modal-x" data-modal="close">✕</button></div>
+    <div class="modal-bd">
+      <p class="m-lead">What should this post be about? Your office writes an honest draft, your fact-checker reviews every claim, and it stops in “Waiting for your okay” — nothing publishes until you approve it.</p>
+      <div class="m-label">Topic</div>
+      <input type="text" id="run-topic" class="m-time" style="width:100%;font:inherit" placeholder="e.g. a five-minute reset for overwhelming days">
+    </div>
+    <div class="modal-foot">
+      <button class="btn no" data-modal="close">Cancel</button>
+      <button class="btn look" data-modal="start-run">Start the work</button>
+    </div>`;
+}
+function runOnce(name){
+  const r = routineByName(name);
+  if (!r || r.tmpl!=="weekly-blog"){
+    toast(`<b>${esc(name)}</b> isn't wired to run for real yet.<br><small>The weekly blog routine runs live today — the others are coming.</small>`);
+    return;
+  }
+  runSel = { name, tmpl:r.tmpl, busy:false };
+  openModal(runHTML());
+  setTimeout(()=>{ const ti=document.getElementById("run-topic"); if(ti){ ti.focus(); ti.addEventListener("keydown", ev=>{ if(ev.key==="Enter"){ ev.preventDefault(); startRun(document.querySelector('[data-modal="start-run"]')); } }); } }, 30);
+}
+async function apiRun(payload){
+  const r = await fetch("/api/run", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(payload)});
+  const j = await r.json().catch(()=>({}));
+  if (!r.ok || j.ok===false) throw new Error(j.detail || j.error || ("HTTP "+r.status));
+  return j;
+}
+async function startRun(btn){
+  if (runSel.busy) return;
+  const topic = (document.getElementById("run-topic")?.value || "").trim();
+  if (!topic){ document.getElementById("run-topic")?.focus(); return; }
+  runSel.busy = true; if (btn){ btn.disabled = true; btn.textContent = "Starting…"; }
+  try {
+    await apiRun({ topic, template: runSel.tmpl });
+    closeModal();
+    toast(`<b>${esc(runSel.name)}</b> is on it — writing about “${esc(topic)}”. It lands in “Waiting for your okay” in a couple of minutes; nothing publishes until you say so.`);
+    pollWaiting();
+  } catch(err){ runSel.busy = false; if (btn){ btn.disabled = false; btn.textContent = "Start the work"; } toast(`Couldn't start it: ${esc(String(err.message||err))}`); }
+}
+// After a run starts, poll the approval feed a few times so the card appears
+// without a manual refresh.
+let _waitTimer = null;
+function pollWaiting(times=12, every=15000){
+  if (_waitTimer) clearInterval(_waitTimer);
+  let n = 0;
+  _waitTimer = setInterval(()=>{ renderWaiting(); if (++n>=times){ clearInterval(_waitTimer); _waitTimer=null; } }, every);
+}
+
+/* ---- schedule picker ---- */
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+let schedSel = { name:"", days:new Set(), time:"09:00" };
+function fmtTime(v){
+  const [h,m] = (v||"09:00").split(":").map(Number);
+  const ap = h<12 ? "am" : "pm"; const hh = ((h+11)%12)+1;
+  return `${hh}:${String(m).padStart(2,"0")}${ap}`;
+}
+function scheduleSummary(){
+  const ds = DAYS.filter(d=>schedSel.days.has(d));
+  if (!ds.length) return `Pick at least one day.`;
+  const label = ds.length===7 ? "every day" : ds.join(" & ");
+  return `Repeats <b>${label}</b> at <b>${fmtTime(schedSel.time)}</b> — each run still waits for your okay.`;
+}
+function scheduleHTML(){
+  const chips = DAYS.map(d=>`<button class="day-chip ${schedSel.days.has(d)?'on':''}" data-day="${d}">${d}</button>`).join("");
+  return `
+    <div class="modal-head"><b>Schedule “${esc(schedSel.name)}”</b><button class="modal-x" data-modal="close">✕</button></div>
+    <div class="modal-bd">
+      <p class="m-lead">Pick the days and time it should run. Scheduling only decides <i>when your office starts the work</i> — every run still stops in “Waiting for your okay” before anything goes out.</p>
+      <div class="m-label">Days</div>
+      <div class="day-chips">${chips}</div>
+      <div class="m-label">Time</div>
+      <input type="time" id="sched-time" class="m-time" value="${schedSel.time}">
+      <div class="save-line" id="sched-summary">${scheduleSummary()}</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn no" data-modal="close">Cancel</button>
+      <button class="btn look" data-modal="save-sched">Schedule it</button>
+    </div>`;
+}
+function openSchedule(name){
+  schedSel = { name, days:new Set(["Tue","Sun"]), time:"09:00" };
+  openModal(scheduleHTML());
+}
+
+/* ---- website builder: branching Q&A wizard ---- */
+let wiz = { step:0, template:"", domain:"", telehealth:"", slug:"cedar-sage", staged:false, live:"", busy:false };
+// Which pre-built example a template publishes (real sites/ dirs, fake therapists, no PHI).
+const WIZ_SLUG = { "Solo practice":"cedar-sage", "Couples / family":"couples-riverbend",
+                   "Group practice":"northstar-denver", "Coaching / EAP":"cedar-sage" };
+function siteName(slug){ const s=SITES.find(x=>x.id===slug); return s?s.name:slug; }
+// POST /api/website → real build/deploy. Throws on a non-ok result so callers can toast it.
+async function apiWebsite(payload){
+  const r = await fetch("/api/website", {method:"POST",
+    headers:{"content-type":"application/json"}, body:JSON.stringify(payload)});
+  const j = await r.json().catch(()=>({}));
+  if (!r.ok || j.ok===false) throw new Error(j.detail || j.error || ("HTTP "+r.status));
+  return j;
+}
+async function wizStage(btn){            // build the site on disk — nothing public yet
+  if (wiz.busy) return; wiz.busy=true; if(btn){ btn.disabled=true; btn.textContent="Building…"; }
+  try { await apiWebsite({slug:wiz.slug, deploy:false}); wiz.staged=true; wiz.step=4; }
+  catch(err){ toast(`Couldn't stage the site: ${esc(String(err.message||err))}`); }
+  finally { wiz.busy=false; setModal(wizHTML()); }
+}
+async function wizPublish(btn){          // deploy live to Cloudflare — Matthew's click = the gate
+  if (wiz.busy) return; wiz.busy=true; if(btn){ btn.disabled=true; btn.textContent="Publishing…"; }
+  try { const j = await apiWebsite({slug:wiz.slug, deploy:true}); wiz.live=j.url; wiz.step=5; }
+  catch(err){ toast(`Couldn't publish: ${esc(String(err.message||err))}`); }
+  finally { wiz.busy=false; setModal(wizHTML()); }
+}
+function wopt(field,val,sub,ico){
+  return `<button class="wiz-opt" data-field="${field}" data-val="${esc(val)}">
+    <span class="wo-ico">${ico}</span>
+    <span class="wo-txt"><b>${val}</b><small>${sub}</small></span>
+  </button>`;
+}
+function wizHTML(){
+  const dots = [0,1,2,3,4].map(i=>`<span class="wd ${i===wiz.step?'on':''} ${i<wiz.step?'done':''}"></span>`).join("");
+  let body = "";
+  if (wiz.step===0){
+    body = `<div class="m-label">What kind of practice?</div>
+      <div class="wiz-opts">
+        ${wopt("template","Solo practice","One clinician, one site","☺")}
+        ${wopt("template","Couples / family","Relationship-focused","♡")}
+        ${wopt("template","Group practice","Several clinicians","☻")}
+        ${wopt("template","Coaching / EAP","Non-clinical services","✦")}
+      </div>`;
+  } else if (wiz.step===1){
+    body = `<div class="m-label">Got a web address already?</div>
+      <div class="wiz-opts">
+        ${wopt("domain","Yes, I own one","We point it at your new site — free, no transfer","✓")}
+        ${wopt("domain","Not yet","We give you a free address to start — yourname.pages.dev","＋")}
+      </div>`;
+  } else if (wiz.step===2){
+    body = `<div class="m-label">Will you offer telehealth?</div>
+      <div class="wiz-opts">
+        ${wopt("telehealth","Yes","Books on Google Calendar, meets on Google Meet — covered by your Google BAA","◉")}
+        ${wopt("telehealth","Not right now","In-person only — skip it, add it later","—")}
+      </div>`;
+  } else if (wiz.step===3){
+    body = `<div class="m-label">Here's what your office will build</div>
+      <ul class="wiz-sum">
+        <li><b>Site:</b> ${esc(wiz.template).toLowerCase()} template, filled from true facts about you</li>
+        <li><b>Address:</b> ${wiz.domain==="Yes, I own one" ? "your own domain, pointed for free" : "a free yourname.pages.dev address to start"}</li>
+        <li><b>Telehealth:</b> ${wiz.telehealth==="Yes" ? "booking on Calendar, sessions on Google Meet" : "off for now"}</li>
+        <li><b>Hosting:</b> published free on Cloudflare Pages</li>
+      </ul>
+      <div class="save-line big">$0/mo to host — vs ~$16/mo on Squarespace, ~$17/mo on Wix.
+        <small>Same site, your domain, no monthly bill. A domain name is optional (~$12/yr) — everything else is free.</small></div>`;
+  } else if (wiz.step===4){
+    body = `<div class="wiz-done">
+      <div class="wd-ico">✓</div>
+      <h3>Your example site is built and staged.</h3>
+      <p>Your website builder filled the ${esc(wiz.template).toLowerCase()} template (the <b>${esc(siteName(wiz.slug))}</b> example) and your fact-checker cleared every claim. <b>Nothing is public yet</b> — it goes live only when you click publish.</p>
+      <p class="wd-note">Publish puts the example online free on Cloudflare so you can see it for real. In setup, the same builder fills from your own true facts.</p>
+    </div>`;
+  } else {
+    body = `<div class="wiz-done">
+      <div class="wd-ico">✓</div>
+      <h3>Your site is live — free.</h3>
+      <p>Published on Cloudflare at $0/mo. Here it is:</p>
+      <p><a class="wiz-live" href="${esc(wiz.live)}" target="_blank" rel="noopener">${esc(wiz.live)}</a></p>
+      <p class="wd-note">Live now on a free address. In setup you can point your own domain at it — no transfer, no monthly bill.</p>
+    </div>`;
+  }
+  let foot;
+  if (wiz.step===0) foot = `<button class="btn no" data-modal="close">Cancel</button>`;
+  else if (wiz.step===4) foot = `<button class="btn no" data-modal="close">Not yet</button><button class="btn look" data-wiz="publish">Publish it — free</button>`;
+  else if (wiz.step===5) foot = `<button class="btn look" data-modal="close">Done</button>`;
+  else foot = `<button class="btn no" data-wiz="back">Back</button>` + (wiz.step===3 ? `<button class="btn look" data-wiz="stage">Stage my site</button>` : ``);
+  return `
+    <div class="modal-head"><b>Build your website — free</b><button class="modal-x" data-modal="close">✕</button></div>
+    <div class="modal-bd"><div class="wiz-dots">${dots}</div>${body}</div>
+    <div class="modal-foot">${foot}</div>`;
+}
+function openWizard(){ wiz = { step:0, template:"", domain:"", telehealth:"" }; openModal(wizHTML()); }
+
+/* ---- build MY real site (beta): collect a true survey -> POST {survey} ---- */
+// [key, label, placeholder]. tagline is the only optional one; the rest are required
+// by engine/build_practice.py REQUIRED.
+const MYSITE_FIELDS = [
+  ["owner_name","Your name","Maya Restrepo"],
+  ["credential","Your license","LCSW"],
+  ["business_name","Practice name","North Star Counseling"],
+  ["tagline","Tagline (optional)","Therapy for the overextended."],
+  ["specialties","What you focus on","burnout, anxiety, perfectionism"],
+  ["modalities","Approaches you use","CBT, ACT, mindfulness-based"],
+  ["location","City, State","Denver, CO"],
+  ["service_areas","Where you can see clients","Colorado"],
+  ["payment_model_type","Payment model","out-of-network"],
+  ["session_fee","Session fee","$175"],
+  ["session_length","Session length","50-minute"],
+  ["phone","Phone","303-555-0166"],
+  ["email","Contact email","hello@northstarcounseling.com"],
+  ["education","Degree, school, year","MA Clinical Mental Health Counseling, Univ. of Denver, 2014"],
+  ["founded_date","Year you started","2018"],
+  ["license_state","License state","CO"],
+  ["license_number","License number","#LPC.000000"],
+  ["license_year","Year licensed","2016"],
+];
+let mysite = { busy:false, slug:"", err:"", live:"", pubErr:"", publishing:false };
+function mysiteRow([k,label,ph]){
+  return `<label class="ms-row" style="display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600">
+    <span>${label}</span>
+    <input id="ms-${k}" class="ms-in" placeholder="${esc(ph)}" autocomplete="off"
+      style="font:inherit;font-weight:400;padding:8px 10px;border:1px solid rgba(0,0,0,.18);border-radius:8px"></label>`;
+}
+function mysiteHTML(){
+  if (mysite.slug){
+    const preview = location.origin + "/sites/" + mysite.slug + "/index.html";
+    let block, foot;
+    if (mysite.live){
+      block = `<h3>Your site is live on the web. 🎉</h3>
+        <p>Anyone can see it here:</p>
+        <p><a class="wiz-live" href="${esc(mysite.live)}" target="_blank" rel="noopener">${esc(mysite.live)}</a></p>
+        <p class="wd-note">This is a Google web address to start. Putting it on your own domain (yourpractice.com) is the next step.</p>`;
+      foot = `<button class="btn look" data-modal="close">Done</button>`;
+    } else {
+      const err = mysite.pubErr ? `<div class="ms-err" style="background:#fde8e8;color:#8a1f1f;border-radius:8px;padding:9px 12px;font-size:13px;margin:8px 0">${esc(mysite.pubErr)}</div>` : "";
+      block = `<h3>Built from your facts — preview ready.</h3>
+        <p>Look it over privately first:</p>
+        <p><a class="wiz-live" href="${esc(preview)}" target="_blank" rel="noopener">${esc(preview)}</a></p>
+        ${err}
+        <p class="wd-note">Happy with it? Put it on the web — one click, no setup.</p>`;
+      foot = `<button class="btn no" data-mysite="again">Start over</button><button class="btn ok" data-mysite="publish" style="background:var(--brand);color:#fff;border-color:var(--brand)">Put it on the web</button>`;
+    }
+    return `<div class="modal-head"><b>Your site</b><button class="modal-x" data-modal="close">✕</button></div>
+      <div class="modal-bd"><div class="wiz-done"><div class="wd-ico">✓</div>${block}</div></div>
+      <div class="modal-foot">${foot}</div>`;
+  }
+  const rows = MYSITE_FIELDS.map(mysiteRow).join("");
+  const err = mysite.err ? `<div class="ms-err" style="background:#fde8e8;color:#8a1f1f;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:10px">${esc(mysite.err)}</div>` : "";
+  return `<div class="modal-head"><b>Build my site — your real practice</b><button class="modal-x" data-modal="close">✕</button></div>
+    <div class="modal-bd">
+      <p class="m-lead">Type your real, true facts about your practice. Your fact-checker won't allow hype — just describe what you actually do. No client information goes here.</p>
+      ${err}
+      <div class="ms-form" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;max-height:54vh;overflow:auto;padding:2px">${rows}</div>
+    </div>
+    <div class="modal-foot"><button class="btn no" data-modal="close">Cancel</button><button class="btn look" data-mysite="build">Build my site</button></div>`;
+}
+function openMySite(){ mysite = { busy:false, slug:"", err:"" }; openModal(mysiteHTML()); }
+async function buildMySite(btn){
+  if (mysite.busy) return;
+  const survey = {};
+  for (const [k] of MYSITE_FIELDS){ const el = document.getElementById("ms-"+k); survey[k] = (el && el.value || "").trim(); }
+  const required = MYSITE_FIELDS.map(f=>f[0]).filter(k=>k!=="tagline");
+  const missing = required.filter(k=>!survey[k]);
+  if (missing.length){ mysite.err = "Please fill: " + missing.join(", "); setModal(mysiteHTML()); return; }
+  mysite.busy = true; mysite.err = ""; if (btn){ btn.disabled = true; btn.textContent = "Building…"; }
+  try { const j = await apiWebsite({survey, deploy:false}); mysite.slug = j.slug; mysite.live=""; mysite.pubErr=""; }
+  catch(err){ mysite.err = String(err.message || err); }
+  finally { mysite.busy = false; setModal(mysiteHTML()); }
+}
+async function publishMySite(btn){
+  if (mysite.publishing || !mysite.slug) return;
+  mysite.publishing = true; mysite.pubErr = ""; if (btn){ btn.disabled = true; btn.textContent = "Putting it online…"; }
+  try {
+    const r = await fetch("/api/publish", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({slug:mysite.slug})});
+    const j = await r.json().catch(()=>({}));
+    if (!r.ok || j.ok===false) throw new Error(j.hint || j.detail || j.error || ("HTTP "+r.status));
+    mysite.live = j.url;
+  } catch(err){ mysite.pubErr = "Couldn't put it on the web yet — " + String(err.message||err); }
+  finally { mysite.publishing = false; setModal(mysiteHTML()); }
+}
+
+/* ---- workspace unlock (honest: real site hosts free; Google unlocks email/Meet/Calendar/Forms) ---- */
+function openUnlock(){
+  openModal(`
+    <div class="modal-head"><b>Unlock your Google Workspace</b><button class="modal-x" data-modal="close">✕</button></div>
+    <div class="modal-bd">
+      <p class="m-lead">If you already pay for Google Workspace (about $7 a month), your office can switch on the parts you're probably not using — no new tools to buy.</p>
+      <ul class="unlock-list">
+        <li><span class="ul-ico">✉</span><div><b>Professional email</b><small>you@yourpractice.com — already included</small></div></li>
+        <li><span class="ul-ico">◉</span><div><b>Telehealth on Google Meet</b><small>covered under your Google BAA — no separate video bill</small></div></li>
+        <li><span class="ul-ico">▦</span><div><b>Online booking on Calendar</b><small>clients pick a slot; it lands on your calendar</small></div></li>
+        <li><span class="ul-ico">✎</span><div><b>Intake on Google Forms</b><small>collects what you need, files it in your own Drive</small></div></li>
+      </ul>
+      <div class="save-line">Already paying for Workspace? This is value you've already bought — your office just turns it on.
+        <small>Straight talk: a phone number (Google Voice) is a small add-on (~$10/mo), and a free Google Business Profile is set up separately. Google Sites can't host your real website — that's why the builder publishes free on Cloudflare instead.</small></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn no" data-modal="close">Close</button>
+      <button class="btn look" data-modal="connect">Connect Google</button>
+    </div>`);
+}
+
+/* ---- flagship band (top of Routines) ---- */
+function renderFlagship(){
+  document.getElementById("flagship").innerHTML = `
+    <div class="flag-head"><b>Start here</b> <span>two ways to get more from what you already pay for</span></div>
+    <div class="flag-band">
+      <div class="flag-card hero">
+        <div class="fc-top"><div class="fc-ico">⌂</div><span class="badge ready">● Free to run</span></div>
+        <h3>Build your practice website — free</h3>
+        <p>Answer a few plain questions. Your office builds a real, honest website from true facts about you and publishes it free — your domain, no monthly bill.</p>
+        <div class="save-line">$0/mo to host — vs ~$16/mo Squarespace, ~$17/mo Wix.</div>
+        <div class="fc-acts"><button class="btn look" data-mysite-open>Build my site</button><button class="btn ghost" data-wizard>See an example</button><span class="fc-note">your real facts · no client info</span></div>
+      </div>
+      <div class="flag-card">
+        <div class="fc-top"><div class="fc-ico alt">G</div><span class="badge nophi">already paid for</span></div>
+        <h3>Unlock your Google Workspace</h3>
+        <p>If you already pay for Google, your office can switch on the parts you're not using — professional email, telehealth on Meet, booking on Calendar, intake on Forms.</p>
+        <div class="fc-acts"><button class="btn ok" data-unlock>See what unlocks</button><span class="fc-note">uses your own Google</span></div>
+      </div>
+    </div>`;
+}
+
+/* ---- listeners: flagship · routine actions · modal ---- */
+document.getElementById("flagship").addEventListener("click", e=>{
+  if (e.target.closest("[data-mysite-open]")) { openMySite(); return; }
+  if (e.target.closest("[data-wizard]")) { openWizard(); return; }
+  if (e.target.closest("[data-unlock]")) { openUnlock(); return; }
+});
+document.getElementById("routines").addEventListener("click", e=>{
+  const rb = e.target.closest("[data-run]");   if (rb){ runOnce(rb.dataset.run); return; }
+  const sb = e.target.closest("[data-sched]"); if (sb){ openSchedule(sb.dataset.sched); return; }
+});
+document.getElementById("modal-back").addEventListener("click", e=>{
+  if (e.target.id==="modal-back"){ closeModal(); return; }       // backdrop click
+  const m = e.target.closest("[data-modal]");
+  if (m){
+    const a = m.dataset.modal;
+    if (a==="close") closeModal();
+    else if (a==="save-sched"){ closeModal(); toast(`Scheduled <b>${esc(schedSel.name)}</b> — ${scheduleSummary()}<br><small>Preview — scripted, no job was created.</small>`); }
+    else if (a==="connect"){ closeModal(); toast(`Connecting your Google isn't wired in this preview yet — this is where Google's secure sign-in would open.`); }
+    else if (a==="start-run"){ startRun(m); }
+    return;
+  }
+  const d = e.target.closest("[data-day]");
+  if (d){
+    const day = d.dataset.day;
+    if (schedSel.days.has(day)) schedSel.days.delete(day); else schedSel.days.add(day);
+    d.classList.toggle("on");
+    document.getElementById("sched-summary").innerHTML = scheduleSummary();
+    return;
+  }
+  const wb = e.target.closest("[data-wiz]");
+  if (wb){
+    const w = wb.dataset.wiz;
+    if (w==="back"){ wiz.step = Math.max(0, wiz.step-1); setModal(wizHTML()); }
+    else if (w==="stage"){ wizStage(wb); }       // async: real build, then step 4
+    else if (w==="publish"){ wizPublish(wb); }   // async: real deploy, then step 5
+    return;
+  }
+  const ms = e.target.closest("[data-mysite]");
+  if (ms){
+    const v = ms.dataset.mysite;
+    if (v==="build") buildMySite(ms);
+    else if (v==="publish") publishMySite(ms);
+    else if (v==="again"){ mysite = { busy:false, slug:"", err:"", live:"", pubErr:"", publishing:false }; setModal(mysiteHTML()); }
+    return;
+  }
+  const wo = e.target.closest("[data-field]");
+  if (wo){
+    wiz[wo.dataset.field] = wo.dataset.val;
+    if (wo.dataset.field==="template") wiz.slug = WIZ_SLUG[wo.dataset.val] || "cedar-sage";
+    wiz.step = Math.min(3, wiz.step+1); setModal(wizHTML()); return;
+  }
+});
+document.getElementById("modal-back").addEventListener("input", e=>{
+  if (e.target.id==="sched-time"){
+    schedSel.time = e.target.value;
+    document.getElementById("sched-summary").innerHTML = scheduleSummary();
+  }
+});
+document.addEventListener("keydown", e=>{
+  if (e.key==="Escape" && document.getElementById("modal-back").classList.contains("open")) closeModal();
+});
+
+/* ---------- boot ---------- */
+renderWaiting(); renderReady(); renderSetup(); renderWork(); renderFlagship(); renderRoutines(); renderStaff();
+document.getElementById("feed-waiting").addEventListener("click", onFeedClick);
+document.querySelector(".main").addEventListener("click", onSetupClick);
+refreshCounts();
+show("today");
+</script>
+</body>
+</html>

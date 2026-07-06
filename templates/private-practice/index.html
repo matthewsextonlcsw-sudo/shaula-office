@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<!-- Progressive enhancement: mark JS as available BEFORE first paint so the
+     scroll-reveal CSS (html.js .reveal{opacity:0}) only hides sections when JS
+     can reveal them again. No JS ⇒ no `js` class ⇒ all content stays visible. -->
+<script>document.documentElement.classList.add('js');</script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{{owner_name}}, {{credential}} — Private Psychotherapy · {{service_areas}}</title>
+<!-- AI-GENERATE:meta_description | Write a 150-160 char meta description for the private-practice site of {{owner_name}}, {{credential}}, a {{practice_model}} psychotherapist specializing in {{specialties}}, with an office in {{location}} and telehealth across {{service_areas}}. Plain, specific, no hype. -->
+<meta name="description" content="Private psychotherapy with {{owner_name}}, {{credential}}. Specializing in {{specialties}}. {{location}} office and telehealth across {{service_areas}}." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..700,30..100&family=Inter+Tight:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+
+<!-- Favicon: default brand mark (talon-gold ring + abstract silhouette). Swap with your own logo if desired. -->
+<link rel="icon" href="assets/placeholder-logo.svg" type="image/svg+xml">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ─────── NAV ─────── -->
+<div class="nav-wrap">
+  <nav class="nav" aria-label="Primary">
+    <button class="brand" data-route="home" aria-label="{{business_name}} — Home">
+      <!-- {{upload}} LOGO: default placeholder is the abstract mark below (keeps the design's gold ring + ink motif). To use a custom logo, replace the inline <svg> with: <img class="mark" src="assets/placeholder-logo.svg" alt="{{business_name}} logo" /> and drop the file at assets/placeholder-logo.svg. -->
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="19" stroke="#C8A35A" stroke-width="1"/>
+          <!-- abstract dual-silhouette mark (generic, brand-neutral) -->
+          <path d="M6 22 C 11 19, 14 21, 17 18 C 14 22, 12 24, 7 25 Z" fill="#14181F"/>
+          <path d="M22 23 C 27 20, 30 22, 34 19 C 30 23, 28 25, 23 26 Z" fill="#14181F" opacity=".55"/>
+          <line x1="8" y1="29" x2="32" y2="29" stroke="#E8B27A" stroke-width="1"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span>{{owner_name}}, {{credential}}</span>
+        <small>{{business_name}}</small>
+      </span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a data-route="about" href="#about">About</a>
+      <a data-route="approach" href="#approach">Approach</a>
+      <a data-route="method" href="#method">Method</a>
+      <a data-route="journey" href="#journey">Journey</a>
+      <a data-route="writing" href="#writing">Writing</a>
+      <a data-route="fees" href="#fees">Fees</a>
+    </div>
+    <div class="nav-end">
+      <a class="nav-cta" data-route="contact" href="#contact">Request a consult →</a>
+      <!-- Mobile menu (≤880px): the disclosure button that replaces the inline
+           links — without it the site had NO navigation on a phone. -->
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="Open menu">
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<main id="main">
+  <div id="route-home"></div>
+  <div id="route-about" hidden></div>
+  <div id="route-approach" hidden></div>
+  <div id="route-method" hidden></div>
+  <div id="route-journey" hidden></div>
+  <div id="route-who" hidden></div>
+  <div id="route-fees" hidden></div>
+  <div id="route-writing" hidden></div>
+  <div id="route-contact" hidden></div>
+  <div id="route-privacy" hidden></div>
+</main>
+
+<!-- ─────── FOOTER ─────── -->
+<footer>
+  <div class="foot-grid">
+    <div class="foot-col">
+      <h5>Practice</h5>
+      <p style="font-family:'Fraunces',serif;font-size:18px;font-weight:460;color:var(--ink);letter-spacing:-0.005em;margin-bottom:12px;">{{owner_name}}, {{credential}}</p>
+      <p>{{business_name}}<br/>{{address_line1}}<br/>{{address_line2}}</p>
+      <p class="mono" style="margin-top:14px;">{{phone}}</p>
+      <p class="mono">{{email}}</p>
+    </div>
+    <div class="foot-col">
+      <h5>Site</h5>
+      <a data-route="about" href="#about">About</a>
+      <a data-route="approach" href="#approach">Approach</a>
+      <a data-route="method" href="#method">{{method_name}}</a>
+      <a data-route="journey" href="#journey">{{program_name}}</a>
+      <a data-route="writing" href="#writing">Writing</a>
+      <a data-route="fees" href="#fees">Fees</a>
+      <a data-route="contact" href="#contact">Contact</a>
+    </div>
+    <div class="foot-col">
+      <h5>Credentials</h5>
+      <p class="mono">{{credential_line_1}}</p>
+      <p class="mono">{{credential_line_2}}</p>
+      <p class="mono">{{credential_line_3}}</p>
+      <p class="mono" style="margin-top:10px;">Telehealth: {{service_areas}}</p>
+    </div>
+    <div class="foot-col">
+      <h5>If you need help now</h5>
+      <!-- Crisis lines: 988 + 911 are US-national and safe to keep verbatim. The two region-specific lines are tokenized; if the practice is outside the US, replace 988/911 too. -->
+      <p style="line-height:1.7;">Call or text <strong style="color:var(--ink);font-weight:600;">988</strong> (Suicide &amp; Crisis Lifeline)</p>
+      <p>Call <strong style="color:var(--ink);font-weight:600;">911</strong> for an emergency</p>
+      <p>{{crisis_line_1_label}}: <strong style="color:var(--ink);font-weight:600;">{{crisis_line_1_number}}</strong></p>
+      <p>{{crisis_line_2_label}}: <strong style="color:var(--ink);font-weight:600;">{{crisis_line_2_number}}</strong></p>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© {{current_year}} {{business_name}}</span>
+    <!-- AI-involvement disclosure (on by default; survey `ai_disclosure: "off"` removes it,
+         `ai_disclosure_text` overrides the line). Transparency is a feature, not a footnote. -->
+    <span class="ai-note" style="text-transform:none;letter-spacing:0.04em;">{{ai_disclosure}}</span>
+    <div class="crisis">
+      <a data-route="privacy" href="#privacy"><span>Privacy</span></a>
+      <a data-route="privacy" href="#privacy"><span>Terms</span></a>
+      <a data-route="privacy" href="#privacy"><span>Accessibility</span></a>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+<script src="tweaks.js"></script>
+<script src="hero-scramble.js" defer></script>
+</body>
+</html>

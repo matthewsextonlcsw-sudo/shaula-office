@@ -1,0 +1,75 @@
+{
+  "_comment": "DEMO / FAKE therapist data for the website-fill engine. Fictional person, fictional practice, placeholder license numbers and contact info. Second fixture: couples-focused, IN-NETWORK, single-state, NO branded method, NO structured career array (exercises the career_history string fallback, the in-network FAQ/fees branches, the EFT+Gottman catalog, and the single-state options list). Not a real clinician; do not contact.",
+
+  "owner_name": "Dana Okafor",
+  "owner_first_name": "Dana",
+  "credential": "LMFT",
+  "credential_full": "Licensed Marriage and Family Therapist",
+
+  "business_name": "Riverbend Couples Therapy",
+  "tagline": "Couples work that helps you turn toward each other again.",
+
+  "practice_model": "In-network",
+  "payment_model": "In-network with major plans",
+  "payment_model_short": "in-network",
+
+  "specialties": "couples, communication, intimacy",
+  "populations": "couples, partners, newlyweds, parents",
+  "modalities": "EFT, Gottman",
+  "outcome_measures": "the Couples Satisfaction Index (CSI)",
+
+  "method_name": "How we work together",
+  "method_acronym": "",
+  "signature_method_name": "None — the no-LLM floor presents a generic, evidence-informed couples process (EFT and Gottman-informed); a branded method would be authored only with LLM enrichment.",
+  "program_name": "The Reconnect Series",
+  "program_duration": "8 to 12 weeks",
+
+  "location": "Columbus, OH",
+  "service_areas": "Ohio",
+  "office_detail": "Suite 4B",
+  "address_line1": "88 Riverside Dr, Suite 4B",
+  "address_line2": "Columbus, OH 43215",
+  "address_full": "88 Riverside Dr, Suite 4B, Columbus, OH 43215",
+
+  "phone": "614-555-0182",
+  "email": "hello@riverbendcouples.com",
+  "education": "MS in Marriage and Family Therapy, The Ohio State University, 2011",
+  "founded_date": "2019",
+
+  "license_1_label": "OH License",
+  "license_1_value": "#MFT-00000 (placeholder) — 2015",
+  "license_2_label": "National",
+  "license_2_value": "AAMFT Clinical Fellow (placeholder) — 2017",
+
+  "credential_line_1": "OH LMFT · #MFT-00000 (placeholder)",
+  "credential_line_2": "AAMFT Clinical Fellow",
+  "credential_line_3": "MS · The Ohio State University · 2011",
+
+  "session_fee": "$160",
+  "session_fee_amount": "160",
+  "session_length": "55-minute",
+  "cadence": "Weekly",
+  "cancellation_policy": "48-hour cancellation policy",
+  "superbill_policy": "In-network claims are filed directly with your insurer; an itemized superbill is available on request.",
+  "sliding_scale_policy": "A limited number of reduced-fee slots are reserved for couples facing financial strain and fill quickly.",
+  "consult_length": "20-minute",
+  "response_time": "within two business days",
+  "availability_status": "Now booking new couples",
+  "location_field_label": "State",
+
+  "crisis_line_1_label": "Crisis Text Line",
+  "crisis_line_1_number": "Text HOME to 741741",
+  "crisis_line_2_label": "988 Suicide & Crisis Lifeline",
+  "crisis_line_2_number": "Call or text 988",
+
+  "hero_video_alt": "A couple walking together along a river at dusk",
+  "current_year": "2026",
+
+  "background_summary": "more than a decade across university counseling, community family services, and private couples work",
+  "career_history": "2011-2015 university counseling center (couples and family therapist); 2015-2019 community family services agency (clinical supervisor); 2019-present founded Riverbend Couples Therapy",
+
+  "upload": "upload",
+
+  "ai_disclosure": "Created with AI assistance from Shaula. Reviewed and approved by Dana Okafor, LMFT before publication.",
+  "inquiry_endpoint": ""
+}

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# shaula-gateway — run Sarah (the Telegram gateway) on the Shaula Vertex brain.
+#
+# Sarah is the Shaula office's Telegram persona. This script mints a fresh
+# Vertex access token and starts the Hermes gateway with Sarah as the profile.
+#
+# First-time setup (one command, interactive):
+#   bin/shaula-gateway setup
+#
+# Normal start:
+#   bin/shaula-gateway
+#
+# Equivalent long-form:
+#   bin/shaula -p sarah gateway run
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HERMES_BIN="$ROOT/vendor/hermes/.venv-shaula/bin/hermes"
+[ -x "$HERMES_BIN" ] || { echo "shaula-gateway: hermes not installed at $HERMES_BIN" >&2; exit 1; }
+
+export HERMES_HOME="${HERMES_HOME:-/tmp/shaula-hermes-home}"
+
+# -- SETUP MODE --------------------------------------------------------------
+if [ "${1:-}" = "setup" ]; then
+  echo ""
+  echo "Sarah / Telegram setup"
+  echo "─────────────────────────────────────────────────"
+  echo "  1. Open Telegram → message @BotFather"
+  echo "  2. Send /newbot → follow prompts → copy the token"
+  echo "  3. Message @userinfobot → copy your numeric user ID"
+  echo "  4. This setup will ask for both."
+  echo ""
+  exec "$HERMES_BIN" -p sarah gateway setup
+fi
+
+# -- NORMAL RUN: mint Vertex token first -------------------------------------
+command -v gcloud >/dev/null 2>&1 || {
+  echo "shaula-gateway: gcloud required. Run with --local not supported for the gateway." >&2
+  exit 1
+}
+
+GOOGLEAPIS_API_KEY="$(gcloud auth print-access-token 2>/dev/null || true)"
+if [ -z "${GOOGLEAPIS_API_KEY}" ]; then
+  echo "shaula-gateway: could not mint a Vertex token. Run 'gcloud auth login' first." >&2
+  exit 1
+fi
+export GOOGLEAPIS_API_KEY
+export SHAULA_BRAIN="vertex:${SHAULA_GCP_PROJECT:-unset}"
+
+echo "shaula-gateway: starting Sarah on Vertex ($(gcloud config get-value account 2>/dev/null))..."
+exec "$HERMES_BIN" -p sarah gateway run "$@"

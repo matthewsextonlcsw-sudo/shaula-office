@@ -1,0 +1,62 @@
+# Shaula hardened Hermes config — ships to ~/.hermes/config.yaml on the box.
+# Every block here is a HIPAA guardrail. scripts/verify-harden.sh FAILS if any drifts.
+# Evidence: docs/SECURITY_AUDIT_hermes.md (6-agent audit, commit 66a6b9c).
+# Keys verified against vendor/hermes/cli-config.yaml.example (Phase 1).
+
+# --- Model: HOUSE NOTHING. DEFAULT = the therapist's OWN Gemini on their OWN Vertex (D13:
+#     their BAA, no-train, MWS sees nothing). OpenAI-compatible Vertex endpoint via Hermes'
+#     chat_completions transport; auth = a SHORT-LIVED gcloud ACCESS TOKEN minted by bin/shaula
+#     into GOOGLEAPIS_API_KEY — the vertexai BAA path, NOT the banned consumer GEMINI/GOOGLE_API_KEY.
+#     NEVER Bedrock / our cloud. The box setup substitutes PROJECT_ID with the therapist's project. ---
+model:
+  provider: "custom"
+  api_mode: "chat_completions"
+  base_url: "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/PROJECT_ID/locations/us-central1/endpoints/openapi"
+  default: "google/gemini-2.5-flash"       # cost-efficient default; pro for heavy lifts (per box capability)
+  context_length: 65536                    # Hermes requires >=64K (Vertex Gemini supports far more)
+  ollama_num_ctx: 65536
+  # MAXIMALIST / OFFLINE FLOOR tier ("no vendor at all") — flip via `bin/shaula --local`:
+  #   provider: custom · base_url: http://localhost:11434/v1 · default: qwen2.5:7b-instruct
+
+# --- Sandbox the agent shell: container, NOT host bash; NO PHI volume mounted ---
+terminal:
+  backend: "docker"
+  cwd: "/workspace"
+  docker_image: "nikolaik/python-nodejs:python3.11-nodejs20"
+  docker_mount_cwd_to_workspace: false     # SECURITY: never mount host/PHI into the container
+
+# --- Freeze self-evolution (local-disk forks; cleanly freezable per audit) ---
+skills:
+  creation_nudge_interval: 0               # no autonomous skill-creation fork
+  inline_shell: false                      # no auto-exec of !`cmd` on skill load
+memory:
+  memory_enabled: false                    # no agent memory writes
+  user_profile_enabled: false
+  nudge_interval: 0                        # no periodic memory nudge
+  flush_min_turns: 0                       # no memory flush on exit/reset
+curator:
+  enabled: false                           # no periodic self-evolution curator (DEFAULT IS ON — must set)
+
+# --- Minimize attack surface: drop self-evolution forks (skills, memory) AND the high-risk /
+#     non-essential toolsets a PHI therapist box never needs. Kept: terminal (runs our skill
+#     scripts), file, code_execution, todo, clarify, delegation, session_search, web, messaging,
+#     tts, vision, cronjob. Verified live via `hermes tools list`. ---
+agent:
+  disabled_toolsets: [skills, memory, browser, computer_use, x_search, image_gen, video, video_gen, moa, spotify, homeassistant, yuanbao]
+
+# --- Dangerous-command gate: human-in-the-loop, never bypassed ---
+approvals:
+  mode: "manual"
+
+# --- Kill default-on convenience egress (allowlist covers the rest) ---
+model_catalog:
+  enabled: false                           # DEFAULT IS ON — must set
+
+# --- Hard ENV invariants (enforced by verify-harden.sh + the network egress allowlist) ---
+#   HERMES_HOME           -> a FileVault/LUKS-encrypted volume (data-at-rest is plaintext)
+#   HERMES_REDACT_SECRETS -> true
+#   HERMES_YOLO_MODE      -> NEVER set
+#   *_BOT_TOKEN / EMAIL_* / WHATSAPP_ENABLED -> unset (messaging gateways dark)
+#   HERMES_LANGFUSE_* / plugins.enabled      -> unset/empty (no cloud observability)
+#   GOOGLE_API_KEY / GEMINI_API_KEY          -> NEVER set (consumer Gemini path banned; Vertex only)
+#   network egress allowlist = { the therapist's Google model endpoint, our signed update endpoint }

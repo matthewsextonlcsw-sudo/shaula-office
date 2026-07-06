@@ -1,0 +1,4 @@
+# Optional dependency for "Connect Google" (connect-google/connect_google.py).
+# The box runs fully without it; this feature is OFF until a therapist connects their Google.
+google-auth-oauthlib>=1.2.0
+google-auth>=2.30.0

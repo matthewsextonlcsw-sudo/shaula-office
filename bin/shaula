@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# shaula — launcher for the Shaula harness (the hardened Nous-Research Hermes fork).
+#
+# Brain tiers (DECISIONS D13):
+#   DEFAULT  — the therapist's OWN Gemini on their OWN Vertex (their BAA, no-train, MWS sees
+#              nothing). Auth = a SHORT-LIVED gcloud ACCESS TOKEN minted fresh each run into
+#              GOOGLEAPIS_API_KEY (the env var Hermes derives from the Vertex base_url host).
+#              This is the vertexai BAA path — NOT the banned consumer GEMINI/GOOGLE_API_KEY.
+#   --local  — the maximalist / offline "no vendor at all" tier: local Ollama. Weaker, but
+#              nothing leaves the box. Requires `ollama serve` + a pulled model.
+#
+# Usage:
+#   bin/shaula chat -q "..."                 # one-shot on the Vertex brain
+#   bin/shaula --local chat -q "..."         # one-shot on the local Ollama floor
+#   bin/shaula kanban swarm "..." --worker … # any hermes subcommand
+#   bin/shaula --help
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HERMES_BIN="$ROOT/vendor/hermes/.venv-shaula/bin/hermes"
+[ -x "$HERMES_BIN" ] || { echo "shaula: hermes not installed at $HERMES_BIN" >&2; exit 1; }
+
+# HERMES_HOME holds the box's config + (on a real box) lives on a FileVault/LUKS volume.
+export HERMES_HOME="${HERMES_HOME:-/tmp/shaula-hermes-home}"
+
+LOCAL=0
+if [ "${1:-}" = "--local" ]; then LOCAL=1; shift; fi
+
+if [ "$LOCAL" = "1" ]; then
+  # Maximalist / offline tier — local Ollama, no vendor in the loop.
+  command -v ollama >/dev/null 2>&1 || echo "shaula: ollama not found — install it for the local tier" >&2
+  export SHAULA_BRAIN="local-ollama"
+  # Local override: a sibling config that points the model at localhost Ollama.
+  # Falls back to the default config if the local one is absent (warns).
+  if [ -f "$HERMES_HOME/config.local.yaml" ]; then
+    export HERMES_CONFIG="$HERMES_HOME/config.local.yaml"
+  else
+    echo "shaula: no config.local.yaml — using default brain config (set up the local tier first)" >&2
+  fi
+else
+  # Default tier — mint a fresh short-lived Vertex access token (their-BAA path).
+  command -v gcloud >/dev/null 2>&1 || { echo "shaula: gcloud required for the Vertex brain (or use --local)" >&2; exit 1; }
+  GOOGLEAPIS_API_KEY="$(gcloud auth print-access-token 2>/dev/null || true)"
+  if [ -z "${GOOGLEAPIS_API_KEY}" ]; then
+    echo "shaula: could not mint a Vertex token. Run 'gcloud auth login' (or 'gcloud auth application-default login' on a box), or use --local." >&2
+    exit 1
+  fi
+  export GOOGLEAPIS_API_KEY
+  export SHAULA_BRAIN="vertex:${SHAULA_GCP_PROJECT:-unset}"
+fi
+
+exec "$HERMES_BIN" "$@"

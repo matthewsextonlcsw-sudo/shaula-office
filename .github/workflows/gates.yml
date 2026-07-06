@@ -1,0 +1,35 @@
+name: gates
+# Enforces the two Shaula gates on every push/PR — the automated half of gate -> review -> push.
+#   - hardening gate: scripts/verify-harden.sh  (HIPAA guardrails set)
+#   - honesty gate:   scripts/prove.sh          (engine + skills, 0-leak, refuses banned claims)
+on:
+  push:
+    branches: [main, "build/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  honesty-and-hardening:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "20"
+      - name: Optional seam-test deps (credential-free)
+        # google-genai = the brain seam; httpx = the svc.gemini import chain the
+        # authoring seam tests (tests.test_author / tests.test_authoring_svc) pull in.
+        # Both non-fatal (|| true): if a dep can't install, the dependent seam test
+        # fails loudly in prove.sh rather than silently skipping.
+        run: |
+          python3 -m pip install --quiet google-genai || true
+          python3 -m pip install --quiet 'httpx>=0.27,<1' || true
+      - name: Hardening gate (verify-harden.sh)
+        run: bash scripts/verify-harden.sh
+      - name: Honesty gate (prove.sh — engine + skills)
+        run: bash scripts/prove.sh
+      - name: Updater gate (signed apply + rollback)
+        run: bash update/test_update.sh

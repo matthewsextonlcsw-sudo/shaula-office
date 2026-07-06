@@ -1,0 +1,47 @@
+{
+  "name": "social-clip-engine",
+  "description": "Turn one already-approved essay into a short-video clip script and caption package: pick the one passage that stands alone honestly, write the on-screen text and caption, honesty-review, then the clinician approves. The OFFICE performs the deterministic clip render after that approval and the clinician posts it themselves — a worker never renders or posts. No PHI.",
+  "variables": ["source", "project"],
+  "allow_phi": false,
+  "default_workspace_kind": "scratch",
+  "steps": [
+    {
+      "ref": "pick",
+      "title": "Pick the passage: {source}",
+      "assignee": "marketer",
+      "priority": "medium",
+      "tags": ["social", "clip"],
+      "description": "From the already-approved essay \"{source}\" on the {project} practice site, choose the ONE passage that stands alone honestly as a short vertical clip — a complete thought that needs no missing context, makes no claim beyond what the essay itself supports, and never makes a client's condition the punchline. Quote the passage verbatim; do not rewrite it into something stronger than the essay said. Give a one-line reason for the pick and one runner-up."
+    },
+    {
+      "ref": "package",
+      "title": "Clip script + caption: {source}",
+      "assignee": "marketer",
+      "priority": "medium",
+      "dependencies": ["pick"],
+      "tags": ["social", "clip", "copy"],
+      "description": "Build the clip package for the chosen passage: the on-screen text split into readable beats (short lines, in order), a caption that gives a real reason to read the full essay on the {project} site, and a handful of accurate hashtags. Sell the read, never a clinical promise. Keep every word inside what the essay actually says — the clip may compress, never inflate. Aim irony at systems, warmth at people."
+    },
+    {
+      "ref": "review",
+      "title": "Honesty review: {source} clip package",
+      "assignee": "reviewer",
+      "priority": "high",
+      "dependencies": ["package"],
+      "requires_review": true,
+      "tags": ["quality"],
+      "description": "Review the passage choice, on-screen beats, caption, and hashtags against the Shaula honesty rules. Confirm the quoted passage is verbatim from the approved essay, nothing in the package claims more than the essay does, no condition is a punchline, and the caption points honestly at the essay. Hold the render until the package is clean."
+    },
+    {
+      "ref": "render",
+      "title": "Human gate — clinician approves; the office renders: {source}",
+      "assignee": "marketer",
+      "priority": "high",
+      "dependencies": ["review"],
+      "triage": true,
+      "requires_review": true,
+      "tags": ["social", "human-gate"],
+      "description": "HUMAN GATE: the clinician reads the clean clip package and approves it. Only after that approval does the office run its deterministic clip render on the approved beats, and the clinician posts the result from their own account — the agent never renders early and never posts. Record which essay was clipped and the date."
+    }
+  ]
+}

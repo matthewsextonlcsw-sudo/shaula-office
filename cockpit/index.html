@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shaula — cockpit</title>
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#12151a; --line:#1f242c; --ink:#e7ecf2; --dim:#8a94a3;
+    --green:#3fb27f; --green2:#2b8c63; --gold:#d8b25a; --accent:#6ea8fe;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font:15px/1.55 ui-sans-serif,-apple-system,"Inter",system-ui,sans-serif}
+  .app{display:grid;grid-template-columns:240px 1fr;height:100vh}
+  /* sidebar */
+  .side{background:var(--panel);border-right:1px solid var(--line);padding:18px 16px;display:flex;flex-direction:column;gap:18px}
+  .brand{display:flex;flex-direction:column;line-height:1}
+  .brand b{font-size:22px;letter-spacing:.16em}
+  .brand b .c{color:var(--green)} .brand small{color:var(--dim);letter-spacing:.22em;font-size:10px;margin-top:8px}
+  .brand .logo{width:172px;max-width:100%;border-radius:14px;display:block;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+  .empty .hero-logo{width:300px;max-width:72%;border-radius:22px;display:block;margin:0 auto 22px;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+  .nav{display:flex;flex-direction:column;gap:4px}
+  .nav a{display:flex;align-items:center;gap:8px;color:#cdd5df;text-decoration:none;font-size:13px;
+    padding:7px 9px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+  .nav a:hover{background:#161b22} .nav a.on{background:#161b22;border-color:#222a33;color:var(--ink)}
+  .nav a .k{color:var(--dim);font-size:14px;width:16px;text-align:center}
+  .roster{display:flex;flex-direction:column;gap:7px;font-size:13px}
+  .roster .h{color:var(--dim);text-transform:uppercase;letter-spacing:.12em;font-size:10px;margin-bottom:2px}
+  .roster .it{display:flex;justify-content:space-between;color:#cdd5df}
+  .roster .it .b{font-size:11px;color:var(--dim)}
+  .dot{color:var(--green)} .dot.p{color:var(--gold)}
+  .roster .it.s{cursor:pointer;border-radius:7px;padding:3px 6px;margin:0 -6px;border:1px solid transparent}
+  .roster .it.s:hover{background:#161b22;border-color:#222a33;color:var(--ink)}
+  .side .foot{margin-top:auto;font-size:11px;color:var(--dim)}
+  /* main */
+  .main{display:flex;flex-direction:column;min-width:0}
+  .view{display:flex;flex-direction:column;min-height:0;flex:1}
+  .view[hidden]{display:none}
+  .top{height:48px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 18px;color:var(--dim);font-size:13px}
+  .top .pill{border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+  .feed{flex:1;overflow:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+  .msg{max-width:760px;display:flex;gap:12px}
+  .msg .who{flex:0 0 64px;color:var(--dim);font-size:12px;text-align:right;padding-top:3px}
+  .msg .body{white-space:pre-wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 14px}
+  .msg.u .body{background:#161b22;border-color:#222a33}
+  .msg .meta{font-size:11px;color:var(--dim);margin-top:6px}
+  .empty{color:var(--dim);margin:auto;text-align:center;max-width:420px}
+  .empty b{color:var(--ink)}
+  /* chat input */
+  .bar{border-top:1px solid var(--line);padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+  .row{display:flex;gap:10px;align-items:flex-end}
+  textarea{flex:1;resize:none;min-height:44px;max-height:150px;background:var(--panel);color:var(--ink);
+    border:1px solid var(--line);border-radius:10px;padding:11px 13px;font:inherit;outline:none}
+  textarea:focus{border-color:var(--green2)}
+  button{background:var(--green2);color:#fff;border:0;border-radius:10px;padding:11px 18px;font:inherit;font-weight:600;cursor:pointer}
+  button:hover{background:var(--green)} button:disabled{opacity:.5;cursor:default}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--dim);font-weight:500}
+  button.ghost:hover{background:#161b22;color:var(--ink)}
+  .hint{display:flex;gap:14px;align-items:center;color:var(--dim);font-size:12px}
+  .tog{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;color:var(--dim);font-size:13px}
+  .tog input{accent-color:var(--green)}
+  code{background:#0e1217;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:#cdd5df}
+  /* authoring view */
+  .auth{flex:1;overflow:auto;padding:24px;display:flex;flex-direction:column;gap:16px;max-width:820px;width:100%}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+  .card h3{margin:0;font-size:16px}
+  .card .lede{color:var(--dim);font-size:13px;margin:-4px 0 2px}
+  .tabs{display:flex;gap:6px}
+  .tab{background:transparent;border:1px solid var(--line);color:var(--dim);font-weight:500;padding:7px 14px;border-radius:999px;font-size:13px}
+  .tab.on{background:#161b22;border-color:var(--green2);color:var(--ink)}
+  label.fld{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#cdd5df}
+  .auth textarea{min-height:84px}
+  input.fld,select.fld{background:#0e1217;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font:inherit;outline:none}
+  input.fld:focus,select.fld:focus{border-color:var(--green2)}
+  .banner{background:#1a1410;border:1px solid #3a2e18;color:var(--gold);border-radius:9px;padding:10px 13px;font-size:13px}
+  .banner b{color:var(--ink)}
+  /* brain — provider picker + two-plane compliance gate */
+  .gate{display:flex;gap:8px;flex-wrap:wrap}
+  .gate .g{font-size:11px;border-radius:999px;padding:2px 9px;border:1px solid;white-space:nowrap}
+  .g.ok{color:var(--green);border-color:#1f3a2c;background:#0f1a14}
+  .g.wait{color:var(--gold);border-color:#3a2e18;background:#1a1410}
+  .g.no{color:#e08a7a;border-color:#3a221e;background:#1a1210}
+  .prov-meta{font-size:12px;color:var(--dim)}
+  .auth .tog{align-items:flex-start;line-height:1.5}
+  /* preview */
+  .wf-name{font-size:17px;font-weight:600}
+  .wf-desc{color:var(--dim);font-size:13px}
+  .steps{display:flex;flex-direction:column;gap:8px}
+  .step{display:flex;align-items:center;gap:12px;background:#0e1217;border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+  .step .ix{flex:0 0 22px;height:22px;border-radius:6px;background:#161b22;border:1px solid #222a33;color:var(--dim);
+    display:flex;align-items:center;justify-content:center;font-size:12px}
+  .step .st{font-size:14px} .step .sub{color:var(--dim);font-size:12px;margin-top:1px}
+  .step .grow{flex:1;min-width:0}
+  .badge{font-size:11px;color:var(--gold);border:1px solid #3a2e18;background:#1a1410;border-radius:999px;padding:2px 9px;white-space:nowrap}
+  .badge.rev{color:var(--accent);border-color:#22344d;background:#0f1622}
+  .skill{background:#0e1217;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:13px;color:#cdd5df;white-space:pre-wrap;max-height:220px;overflow:auto}
+  .viol{color:#e08a7a;font-size:13px}
+  .viol ul{margin:6px 0 0;padding-left:18px}
+  .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .ok{color:var(--green)} .muted{color:var(--dim);font-size:12px}
+  /* tasks board */
+  .navbadge{margin-left:auto;background:#1a1410;border:1px solid #3a2e18;color:var(--gold);border-radius:999px;padding:0 7px;font-size:11px;line-height:18px}
+  .board{flex:1;overflow:auto;padding:24px;display:flex;flex-direction:column;gap:12px;max-width:820px;width:100%}
+  .task{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:9px}
+  .task .thead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .task .tname{font-weight:600;font-size:15px}
+  .task .ttopic{color:var(--dim);font-size:13px;margin-top:2px}
+  .task .prog{height:6px;background:#0e1217;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .task .prog>i{display:block;height:100%;background:var(--green2);transition:width .4s ease}
+  .task .sub{color:var(--dim);font-size:12px}
+  .st-badge{font-size:11px;border-radius:999px;padding:3px 10px;white-space:nowrap;border:1px solid;display:flex;align-items:center}
+  .st-work{color:var(--green);border-color:#1f3a2c;background:#0f1a14}
+  .st-wait{color:var(--gold);border-color:#3a2e18;background:#1a1410}
+  .st-done{color:#9fd8bb;border-color:#1f3a2c;background:#0f1a14}
+  .st-park{color:#e08a7a;border-color:#3a221e;background:#1a1210}
+  .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  /* task output (the deliverable) */
+  .viewbtn{background:transparent;border:1px solid var(--line);color:var(--dim);font-weight:500;padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit;width:max-content}
+  .viewbtn:hover{background:#161b22;color:var(--ink)}
+  .tout{border-top:1px solid var(--line);margin-top:2px;padding-top:10px;display:flex;flex-direction:column;gap:10px}
+  .outlink{display:inline-block;background:var(--green2);color:#fff;text-decoration:none;border-radius:9px;padding:9px 14px;font-weight:600;width:max-content}
+  .outlink:hover{background:var(--green)}
+  .outstep{background:#0e1217;border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+  .outlabel{color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+  .outbody{white-space:pre-wrap;font-size:13px;color:#cdd5df;max-height:360px;overflow:auto;line-height:1.55}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><img class="logo" src="/shaula-logo.png" alt="Shaula" /><small>COCKPIT</small></div>
+    <nav class="nav">
+      <a id="navChat" class="on"><span class="k">▸</span> Chat</a>
+      <a id="navTasks"><span class="k">◫</span> Tasks <span id="tasksCount" class="navbadge" hidden></span></a>
+      <a id="navAuth"><span class="k">✦</span> New workflow</a>
+      <a id="navBrain"><span class="k">◐</span> Brain</a>
+    </nav>
+    <div class="roster">
+      <div class="h">Staff</div>
+      <div id="rosterList"><div class="muted" style="font-size:12px;padding:3px 6px">loading…</div></div>
+    </div>
+    <div class="roster">
+      <div class="h">Connections</div>
+      <div class="it"><span>Google Workspace</span><span class="b">linked</span></div>
+      <div class="it"><span>Model</span><span class="b" id="modelTag">…</span></div>
+    </div>
+    <div class="foot">house-nothing · no PHI in chat</div>
+  </aside>
+
+  <main class="main">
+    <!-- ── Chat view ─────────────────────────────────────────────── -->
+    <div class="view" id="chatView">
+      <div class="top">
+        <span class="pill" id="health">connecting…</span>
+        <span>chat the agent · type <code>/</code> for commands</span>
+      </div>
+      <div class="feed" id="feed">
+        <div class="empty" id="empty">
+          <img class="hero-logo" src="/shaula-logo.png" alt="Shaula" />
+          <b>Shaula cockpit.</b><br/>Talk to the agent, or run a command:<br/><br/>
+          <code>/build</code> a demo site · <code>/clip</code> a social video · <code>/humanize &lt;text&gt;</code> · <code>/staff</code> · <code>/help</code>
+        </div>
+      </div>
+      <div class="bar">
+        <div class="row">
+          <textarea id="in" placeholder="Message Shaula…  (Enter to send, Shift+Enter for newline)"></textarea>
+          <button id="send">Send</button>
+        </div>
+        <div class="hint">
+          <label class="tog"><input type="checkbox" id="hz" /> Humanize replies</label>
+          <span id="status"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tasks (live run board) ────────────────────────────────── -->
+    <div class="view" id="tasksView" hidden>
+      <div class="top">
+        <span class="pill" id="tasksPill">Tasks</span>
+        <span>work Shaula is running — it stays here until you approve it</span>
+      </div>
+      <div class="board" id="board">
+        <div class="empty"><b>No tasks yet.</b><br/>Open a staff member and run one — it’ll show up here and stay while it works.</div>
+      </div>
+    </div>
+
+    <!-- ── New-workflow (authoring) view ─────────────────────────── -->
+    <div class="view" id="authView" hidden>
+      <div class="top">
+        <span class="pill">New workflow</span>
+        <span>describe a job — Shaula drafts a vetted workflow for your approval</span>
+      </div>
+      <div class="auth">
+        <div class="banner" id="authBanner" hidden></div>
+
+        <!-- stage 1: hybrid input -->
+        <div class="card" id="authInput">
+          <h3>What should Shaula take off your plate?</h3>
+          <div class="lede">Type it plainly, or use the guided form — either way Shaula drafts the steps and you approve before anything runs.</div>
+          <div class="tabs">
+            <button type="button" class="tab on" id="tabDescribe">Describe it</button>
+            <button type="button" class="tab" id="tabGuided">Guided</button>
+          </div>
+
+          <div id="modeDescribe">
+            <label class="fld">Describe the job
+              <textarea id="descText" placeholder="e.g. Every Monday, draft a 900-word blog post on a topic I give you — in my voice, plain and warm, citing only real sources."></textarea>
+            </label>
+          </div>
+
+          <div id="modeGuided" hidden style="display:flex;flex-direction:column;gap:12px">
+            <label class="fld">What should get done?
+              <input class="fld" id="gOutcome" placeholder="Draft a weekly blog post" />
+            </label>
+            <label class="fld">How often?
+              <select class="fld" id="gCadence">
+                <option value="one time">One time</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </label>
+            <label class="fld">Any details? (topic source, tone, length…)
+              <textarea id="gDetails" placeholder="900 words, warm and plain; I'll give the topic; cite only real sources"></textarea>
+            </label>
+          </div>
+
+          <label class="tog"><input type="checkbox" id="withSkill" /> Also draft staff guidance (a reusable skill)</label>
+          <div class="actions">
+            <button id="draftBtn">Draft workflow</button>
+            <span class="hint" id="authStatus"></span>
+          </div>
+        </div>
+
+        <!-- stage 2: preview -->
+        <div class="card" id="authPreview" hidden></div>
+        <!-- stage 3: result -->
+        <div class="card" id="authResult" hidden></div>
+      </div>
+    </div>
+
+    <!-- ── Brain (LLM provider picker + two-plane compliance gate) ─ -->
+    <div class="view" id="brainView" hidden>
+      <div class="top">
+        <span class="pill">Brain</span>
+        <span>choose the model behind Shaula — the compliance gate is enforced here</span>
+      </div>
+      <div class="auth">
+        <div class="banner">Two planes, one rule. <b>Marketing</b> (no PHI) runs on any model on your own key — you just acknowledge how it bills, since Anthropic, OpenAI and Grok each charge differently. <b>Clinical / PHI</b> runs only on a BAA-covered model you attest. <b>No BAA = HIPAA risk = blocked</b> — consumer ChatGPT/Grok never touch patient data.</div>
+        <div id="provList"><div class="muted">loading models…</div></div>
+      </div>
+    </div>
+
+    <!-- ── Staff detail view ─────────────────────────────────────── -->
+    <div class="view" id="staffView" hidden>
+      <div class="top">
+        <a id="staffBack" class="pill" style="cursor:pointer;color:#cdd5df;text-decoration:none">← Back</a>
+        <span id="staffTop">Staff</span>
+      </div>
+      <div class="auth">
+        <div class="card" id="staffDetail"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const feed=$('feed'), input=$('in'), sendBtn=$('send'), empty=$('empty'),
+      hz=$('hz'), status=$('status'), modelTag=$('modelTag'), health=$('health');
+
+fetch('/api/health').then(r=>r.json()).then(d=>{
+  health.textContent='● online'; health.style.color='var(--green)';
+  modelTag.textContent=(d.routes&&d.routes.chat||'').split(':').pop()||'—';
+}).catch(()=>{health.textContent='● offline';health.style.color='#c66'});
+
+/* ── view switching ─────────────────────────────────────────────── */
+function show(view){
+  $('chatView').hidden = view!=='chat';
+  $('tasksView').hidden = view!=='tasks';
+  $('authView').hidden = view!=='auth';
+  $('brainView').hidden = view!=='brain';
+  $('staffView').hidden = view!=='staff';
+  $('navChat').classList.toggle('on',view==='chat');
+  $('navTasks').classList.toggle('on',view==='tasks');
+  $('navAuth').classList.toggle('on',view==='auth');
+  $('navBrain').classList.toggle('on',view==='brain');
+  if(view==='chat') input.focus();
+  if(view==='tasks') refreshBoard();
+}
+$('navChat').onclick=()=>show('chat');
+$('navTasks').onclick=()=>show('tasks');
+$('navAuth').onclick=()=>{show('auth'); ensureAuthConfig();};
+$('navBrain').onclick=()=>{show('brain'); loadProviders();};
+$('staffBack').onclick=()=>show('chat');
+
+/* ── chat ───────────────────────────────────────────────────────── */
+function add(who, text, meta){
+  if(empty) {empty.remove();}
+  const m=document.createElement('div'); m.className='msg '+(who==='you'?'u':'a');
+  m.innerHTML=`<div class="who">${who}</div><div><div class="body"></div>${meta?`<div class="meta">${meta}</div>`:''}</div>`;
+  const bodyEl=m.querySelector('.body');
+  // Linkify download paths (/api/clip/<name>.mp4) into a real <a download>; ALL
+  // other text stays as text nodes (XSS-safe — never innerHTML agent/user text).
+  const re=/\/api\/clip\/[a-z0-9_-]+\.mp4/g; let last=0, mm, linked=false;
+  while((mm=re.exec(text))){
+    linked=true;
+    if(mm.index>last) bodyEl.appendChild(document.createTextNode(text.slice(last,mm.index)));
+    const a=document.createElement('a'); a.href=mm[0]; a.textContent='⬇ download clip';
+    a.setAttribute('download',''); a.className='dl';
+    bodyEl.appendChild(a); last=mm.index+mm[0].length;
+  }
+  if(linked){ if(last<text.length) bodyEl.appendChild(document.createTextNode(text.slice(last))); }
+  else { bodyEl.textContent=text; }
+  feed.appendChild(m); feed.scrollTop=feed.scrollHeight;
+  return m;
+}
+async function go(){
+  const text=input.value.trim(); if(!text) return;
+  input.value=''; add('you', text); sendBtn.disabled=true; status.textContent='thinking…';
+  try{
+    const isCmd=text.startsWith('/');
+    const r=await fetch(isCmd?'/api/command':'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(isCmd?{command:text}:{message:text,humanize:hz.checked})});
+    const d=await r.json();
+    const reply=d.reply||d.output||d.error||'(no reply)';
+    const meta=[d.backend&&`${d.backend}`,d.model,d.humanized&&'humanized'].filter(Boolean).join(' · ');
+    add('shaula', reply, meta);
+  }catch(e){ add('shaula','(error: '+e+')'); }
+  sendBtn.disabled=false; status.textContent=''; input.focus();
+}
+sendBtn.onclick=go;
+input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go();} });
+input.focus();
+
+/* ── authoring (hybrid: describe | guided → preview → approve) ───── */
+let authConfigured=null, lastTemplate=null;
+
+async function ensureAuthConfig(){
+  if(authConfigured!==null) return;
+  try{
+    const d=await (await fetch('/api/authoring/config')).json();
+    authConfigured=!!d.configured;
+  }catch(e){ authConfigured=false; }
+  const b=$('authBanner');
+  if(!authConfigured){
+    b.hidden=false;
+    b.textContent='Workflow authoring isn’t wired to a service yet. Set SHAULA_SVC_URL (and the internal secret) and restart the cockpit.';
+    $('draftBtn').disabled=true;
+  } else { b.hidden=true; $('draftBtn').disabled=false; }
+}
+
+function tab(mode){
+  const d=mode==='describe';
+  $('tabDescribe').classList.toggle('on',d); $('tabGuided').classList.toggle('on',!d);
+  $('modeDescribe').hidden=!d; $('modeGuided').hidden=d;
+}
+$('tabDescribe').onclick=()=>tab('describe');
+$('tabGuided').onclick=()=>tab('guided');
+
+function composeDescription(){
+  if(!$('modeGuided').hidden){
+    const o=$('gOutcome').value.trim(), c=$('gCadence').value, det=$('gDetails').value.trim();
+    if(!o) return '';
+    let s=o; if(c && c!=='one time') s=`${c.charAt(0).toUpperCase()+c.slice(1)}: ${o}`;
+    if(det) s+=`. Details: ${det}`;
+    return s;
+  }
+  return $('descText').value.trim();
+}
+
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function renderPreview(d){
+  lastTemplate = d.template || null;
+  const steps=(d.steps||[]).map((s,i)=>{
+    const dep=(s.dependsOn&&s.dependsOn.length)?` · after ${esc(s.dependsOn.join(', '))}`:'';
+    const badge=s.isReview?'<span class="badge rev">review · honesty gate</span>':'';
+    return `<div class="step"><span class="ix">${i+1}</span>
+      <div class="grow"><div class="st">${esc(s.title)}</div><div class="sub">${esc(s.assignee)}${dep}</div></div>${badge}</div>`;
+  }).join('');
+  let skill='';
+  if(d.skill){
+    const sk=d.skill, head=esc(sk.name||'skill')+(sk.description?' — '+esc(sk.description):'');
+    skill=`<div><div class="muted" style="margin-bottom:6px">Drafted staff guidance (skill)</div><div class="skill"><strong>${head}</strong>${sk.body?'\n\n'+esc(sk.body):''}</div></div>`;
+  }
+  else if(d.skillRefused){ skill=`<div class="muted">Staff guidance not drafted (${esc(d.skillRefused.category)}) — the workflow stands on its own.</div>`; }
+  $('authPreview').innerHTML=`
+    <div><div class="wf-name">${esc(d.name||'Workflow')}</div><div class="wf-desc">${esc(d.description||'')}</div></div>
+    <div class="muted">${(d.steps||[]).length} step(s) · every step is honesty-gated; review steps need your okay before anything publishes.</div>
+    <div class="steps">${steps}</div>
+    ${skill}
+    <div class="actions">
+      <button id="approveBtn">Approve &amp; run</button>
+      <button class="ghost" id="editBtn">Edit</button>
+      <button class="ghost" id="notnowBtn">Not now</button>
+      <span class="hint" id="approveStatus"></span>
+    </div>`;
+  $('authPreview').hidden=false; $('authResult').hidden=true;
+  $('approveBtn').onclick=approve;
+  $('editBtn').onclick=()=>{ $('authPreview').hidden=true; };
+  $('notnowBtn').onclick=()=>{ lastTemplate=null; $('authPreview').hidden=true; $('authResult').hidden=true; };
+}
+
+function renderRefusal(d){
+  const viol=(d.violations&&d.violations.length)
+    ? `<div class="viol">Why: <ul>${d.violations.map(v=>`<li>${esc(v)}</li>`).join('')}</ul></div>` : '';
+  $('authPreview').innerHTML=`<div class="viol">${esc(d.message||'Couldn’t draft that.')}</div>${viol}
+    <div class="muted">Nothing was created. Adjust the description and try again — Shaula only drafts workflows it can run honestly.</div>`;
+  $('authPreview').hidden=false; $('authResult').hidden=true;
+}
+
+async function draft(){
+  const description=composeDescription();
+  if(!description){ $('authStatus').textContent='Describe the job first.'; return; }
+  $('draftBtn').disabled=true; $('authStatus').textContent='drafting…';
+  try{
+    const d=await (await fetch('/api/authoring/draft',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({description, withSkill:$('withSkill').checked})})).json();
+    if(d.ok===false) renderRefusal(d); else renderPreview(d);
+  }catch(e){ renderRefusal({message:'Error reaching the cockpit: '+e}); }
+  $('draftBtn').disabled=false; $('authStatus').textContent='';
+}
+$('draftBtn').onclick=draft;
+
+async function approve(){
+  if(!lastTemplate){ return; }
+  const btn=$('approveBtn'), st=$('approveStatus');
+  btn.disabled=true; st.textContent='sending…';
+  try{
+    const d=await (await fetch('/api/authoring/create',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({template:lastTemplate})})).json();
+    if(d.ok===false){ st.textContent=''; renderResult(false,d); return; }
+    renderResult(true,d);
+  }catch(e){ st.textContent=''; renderResult(false,{message:'Error: '+e}); }
+}
+
+function renderResult(ok, d){
+  let msg;
+  if(!ok){ msg=`<div class="viol">${esc(d.message||'Could not start the workflow.')}</div>`; }
+  else {
+    const note = d.idempotent ? 'That was a repeat — it’s already running.'
+      : d.status==='needs_approval' ? 'Drafted and waiting for your approval in the office inbox.'
+      : d.status==='queued_next_cycle' ? (d.queueNote||'Queued for next cycle.')
+      : 'Queued — Shaula is on it. You’ll review the result before anything goes live.';
+    msg=`<div class="ok">✓ ${esc(note)}</div><div class="muted">Run ${esc(d.runId||'')} · ${esc(d.status||'')}</div>`;
+  }
+  $('authResult').innerHTML=`${msg}<div class="actions"><button class="ghost" id="againBtn">Author another</button></div>`;
+  $('authResult').hidden=false; $('authPreview').hidden=true;
+  $('againBtn').onclick=()=>{ lastTemplate=null; $('authResult').hidden=true;
+    $('descText').value=''; $('gOutcome').value=''; $('gDetails').value=''; };
+}
+
+/* ── Brain: model picker + the two-plane compliance gate ─────────────────
+   The gate (providers.authorize) is the source of truth on the server; this
+   panel just lets the customer set consent / BAA attestation / a BYO key and
+   SHOWS what each model is currently cleared for. A key is write-only: it goes
+   to the 0600 store, never comes back, never sits in the DOM after save. ───── */
+function gateBadges(p){
+  const phi = !p.phi_ok ? ['no','✕ never for PHI — no BAA']
+            : (!p.needs_attestation || p.baa_attested) ? ['ok','✓ cleared for clinical / PHI']
+            : ['wait','attest a BAA to enable PHI'];
+  const mkt = (!p.needs_key || p.consent) ? ['ok','✓ cleared for marketing']
+            : ['wait','acknowledge billing for marketing'];
+  return `<span class="g ${phi[0]}">${phi[1]}</span><span class="g ${mkt[0]}">${mkt[1]}</span>`;
+}
+function provCard(p){
+  const biller = esc(String(p.billed_by||'').split(' — ')[0] || p.billed_by);
+  const keyField = p.needs_key ? `<label class="fld">Your ${esc(p.label)} API key
+      <input class="fld" type="password" id="key_${esc(p.id)}" autocomplete="off"
+        placeholder="${p.has_key?'key saved ✓ — leave blank to keep':'paste your key — stored locally (0600), never shown again'}" /></label>`
+    : `<div class="prov-meta">No key needed — ${esc(p.billed_by)}.</div>`;
+  const consent = p.needs_key ? `<label class="tog"><input type="checkbox" id="consent_${esc(p.id)}" ${p.consent?'checked':''} />
+      <span>I’m bringing my own ${esc(p.label)} key — ${biller} bills me directly (${esc(p.rate)}). Shaula doesn’t meter or charge these tokens.</span></label>` : '';
+  const attest = p.needs_attestation ? `<label class="tog"><input type="checkbox" id="attest_${esc(p.id)}" ${p.baa_attested?'checked':''} />
+      <span>I attest a signed BAA is in place with ${esc(p.label)} — required before it may touch clinical data (PHI).</span></label>` : '';
+  return `<div class="card">
+    <div><div class="wf-name">${esc(p.label)}</div><div class="wf-desc">${esc(p.note)}</div></div>
+    <div class="gate">${gateBadges(p)}</div>
+    <div class="prov-meta">Billing: ${esc(p.billed_by)} · ${esc(p.rate)}</div>
+    ${keyField}${consent}${attest}
+    <div class="actions"><button id="save_${esc(p.id)}">Save</button><span class="hint" id="pstat_${esc(p.id)}"></span></div>
+  </div>`;
+}
+function renderProviders(d){
+  const wrap=$('provList'), provs=(d&&d.providers)||[];
+  if(!provs.length){ wrap.innerHTML='<div class="muted">No models registered.</div>'; return; }
+  wrap.innerHTML=provs.map(provCard).join('');
+  provs.forEach(p=>{ const b=$('save_'+p.id); if(b) b.onclick=()=>saveByo(p.id); });
+}
+async function loadProviders(){
+  const wrap=$('provList'); wrap.innerHTML='<div class="muted">loading models…</div>';
+  try{ renderProviders(await (await fetch('/api/providers')).json()); }
+  catch(e){ wrap.innerHTML='<div class="viol">Couldn’t load models: '+esc(e)+'</div>'; }
+}
+async function saveByo(id){
+  const consentEl=$('consent_'+id), attestEl=$('attest_'+id), keyEl=$('key_'+id);
+  const body={provider:id, consent:!!(consentEl&&consentEl.checked), baa_attested:!!(attestEl&&attestEl.checked)};
+  if(keyEl && keyEl.value.trim()) body.key=keyEl.value.trim();
+  const btn=$('save_'+id), st=$('pstat_'+id);
+  if(btn) btn.disabled=true; if(st) st.textContent='saving…';
+  try{
+    const d=await (await fetch('/api/byo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+    if(keyEl) keyEl.value='';                      // never keep the key in the DOM
+    if(d.ok===false){ if(st) st.textContent=esc(d.error||'error'); if(btn) btn.disabled=false; return; }
+    renderProviders(d.state);                       // re-render from authoritative state (updates gate + has_key)
+    const st2=$('pstat_'+id); if(st2) st2.textContent='saved ✓';
+  }catch(e){ if(st) st.textContent='error'; if(btn) btn.disabled=false; }
+}
+
+/* ── staff roster — driven straight from the svc (/api/roster) so it can never
+   drift from the manifest. Every workflow the svc can run is reachable here. ── */
+let ROSTER = [];                                   // [{name,title,tagline,surface?,capabilities[]}]
+const staffByName = n => ROSTER.find(s => s.name === n);
+const NO_TOPIC = new Set(['website-launch']);      // builds from intake — no subject to ask for
+
+async function loadRoster(){
+  const list=$('rosterList'); if(!list) return;
+  let d;
+  try{ d=await (await fetch('/api/roster')).json(); }
+  catch(e){ list.innerHTML='<div class="muted" style="font-size:12px;padding:3px 6px">roster offline</div>'; return; }
+  ROSTER=(d&&d.staff)||[];
+  if(!ROSTER.length){
+    list.innerHTML=`<div class="muted" style="font-size:12px;padding:3px 6px">${esc((d&&d.message)||'No staff available.')}</div>`;
+    return;
+  }
+  // Every svc member points at something real (a capability or a read surface) —
+  // so all show live. A member with neither would render parked.
+  list.innerHTML=ROSTER.map(s=>{
+    const real=(s.capabilities&&s.capabilities.length)||s.surface;
+    const dot=real?'<span class="dot">●</span>':'<span class="dot p">○</span>';
+    return `<div class="it s" data-staff="${esc(s.name)}"><span>${esc(s.title)}</span>${dot}</div>`;
+  }).join('');
+  list.querySelectorAll('.it.s').forEach(el=>{ el.onclick=()=>showStaff(el.getAttribute('data-staff')); });
+}
+
+function capCard(c){
+  const topic = NO_TOPIC.has(c.id) ? '' :
+    `<input class="fld" id="topic_${esc(c.id)}" placeholder="What should it be about? (optional)" style="margin:4px 0" />`;
+  return `<div class="card" style="gap:6px">
+    <div><div class="wf-name" style="font-size:14px">${esc(c.label)}</div>
+         <div class="wf-desc">${esc(c.description||'')}</div></div>
+    ${topic}
+    <div class="actions"><button id="run_${esc(c.id)}">Run</button><span class="hint" id="rs_${esc(c.id)}"></span></div>
+  </div>`;
+}
+
+function showStaff(name){
+  const s=staffByName(name); if(!s) return;
+  show('staff');
+  $('staffTop').textContent=s.title;
+  const caps=s.capabilities||[];
+  let body;
+  if(s.surface){
+    body=`<div class="wf-desc">${esc(s.surface.description||'')}</div><div id="surfaceBody" class="muted">loading…</div>`;
+  } else if(caps.length){
+    body=caps.map(capCard).join('');
+  } else {
+    body=`<div class="muted">This employee takes part in workflows but doesn’t start one directly — Shaula runs them inside the workflows above.</div>`;
+  }
+  $('staffDetail').innerHTML=`
+    <div><div class="wf-name">${esc(s.title)}</div><div class="wf-desc">${esc(s.tagline||'')}</div></div>
+    <div id="staffOut" class="viol" hidden></div>
+    ${body}`;
+  if(s.surface) loadSurface(s.surface);
+  else caps.forEach(c=>{ const b=$('run_'+c.id); if(b) b.onclick=()=>runCapability(c.id); });
+}
+
+async function runCapability(capId){
+  const btn=$('run_'+capId), st=$('rs_'+capId), out=$('staffOut');
+  const topicEl=$('topic_'+capId);
+  const topic=(topicEl && topicEl.value.trim()) || '';
+  btn.disabled=true; st.textContent='starting…'; out.hidden=true;
+  try{
+    const d=await (await fetch('/api/runs',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({capability:capId, topic})})).json();
+    if(d.ok===false){
+      out.hidden=false; out.textContent=d.message||('Couldn’t start that: '+(d.error||'error'));
+      btn.disabled=false; st.textContent=''; return;
+    }
+    btn.disabled=false; st.textContent='';
+    show('tasks'); refreshBoard();          // the task now lives on the board — no form, no detour
+  }catch(e){ out.hidden=false; out.textContent='(error: '+e+')'; btn.disabled=false; st.textContent=''; }
+}
+
+const _row = (k,v) => `<div style="display:flex;justify-content:space-between"><span>${esc(k)}</span><b>${esc(v)}</b></div>`;
+async function loadSurface(surface){
+  const el=$('surfaceBody'); if(!el) return;
+  try{
+    if(surface.kind==='inquiries'){
+      const d=await (await fetch('/api/inquiries')).json();
+      const items=(d&&d.inquiries)||[];
+      el.classList.remove('muted');
+      el.innerHTML = items.length
+        ? items.map(i=>`<div class="card" style="gap:2px">
+             <div class="wf-name" style="font-size:13px">${esc(i.name||'(no name)')}${i.read?'':' <span class="badge" style="color:var(--green);border-color:#1f3a2c">new</span>'}</div>
+             <div class="wf-desc">${esc(i.email||'')}${i.message?' · '+esc(i.message):''}</div></div>`).join('')
+        : '<div class="muted">No inquiries yet. They land here the moment your site receives one.</div>';
+    } else if(surface.kind==='stats'){
+      const d=await (await fetch('/api/stats')).json();
+      el.classList.remove('muted');
+      if(d&&d.ok===false){ el.innerHTML=`<div class="muted">${esc(d.message||'No counts yet.')}</div>`; return; }
+      const r=(d&&d.runs)||{}, inq=(d&&d.inquiries)||{};
+      el.innerHTML=`<div class="card" style="gap:4px">
+        ${_row('Workflows run', r.total||0)}
+        ${_row('Approved this month', r.approvedThisMonth||0)}
+        ${_row('Essays published', d.postsPublished||0)}
+        ${_row('Inquiries', `${inq.total||0} (${inq.new||0} new)`)}
+        ${_row('Site live', d.siteLive?'yes':'not yet')}
+      </div>`;
+    }
+  }catch(e){ el.innerHTML='<div class="muted">surface offline</div>'; }
+}
+
+/* ── live task board (polls the svc runs feed; tasks appear + stay) ──────── */
+const CAP_LABEL={'website-launch':'Practice Website','weekly-blog':'Weekly Blog',
+  'growth-engine':'Growth Engine','distribution-engine':'Backlink Engine',
+  'faq-engine':'FAQ Page','reputation-engine':'Review Replies',
+  'content-calendar-engine':'Content Calendar','local-seo-engine':'Local Presence',
+  'onboarding-email-engine':'Welcome Emails','social-clip-engine':'Social Clips',
+  'practice-forms-engine':'Practice Paperwork'};
+const capLabel=id=>CAP_LABEL[id]||String(id||'Task').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+
+function stBadge(s){
+  s=String(s||'');
+  if(s==='working') return ['st-work','<span class="live-dot"></span>Working'];
+  if(s==='queued')  return ['st-work','Queued'];
+  if(s==='needs_approval') return ['st-wait','Needs your okay'];
+  if(s==='queued_next_cycle') return ['st-wait','Queued · next cycle'];
+  if(/(approv|publish|live|done|complete)/.test(s)) return ['st-done','Done'];
+  if(/(fail|reject|park|honesty)/.test(s)) return ['st-park','Parked'];
+  return ['st-work', esc(s)];
+}
+
+let boardBusy=false, lastBoardSig='';
+const openOuts=new Set();   // run ids whose deliverable panel is open — don't rebuild under the reader
+async function refreshBoard(){
+  if(boardBusy) return;
+  try{ renderBoard(await (await fetch('/api/runs')).json()); }
+  catch(e){ /* keep last board on a transient poll error */ }
+}
+function renderBoard(d){
+  const runs=(d&&d.runs)||[];
+  const active=runs.filter(r=>/(working|queued|needs_approval|queued_next_cycle)/.test(r.status)).length;
+  const badge=$('tasksCount');
+  if(active>0){ badge.hidden=false; badge.textContent=active; } else { badge.hidden=true; }
+  if(openOuts.size) return;   // a deliverable is open — keep the badge live but don't rebuild the board
+  const board=$('board');
+  const sig=JSON.stringify(runs.map(r=>[r.id,r.status,r.stepsDone,r.currentStep&&r.currentStep.index]));
+  if(sig===lastBoardSig && board.querySelector('.task')) return;   // unchanged → don't clobber scroll/clicks
+  lastBoardSig=sig;
+  if(d&&d.ok===false&&!runs.length){
+    board.innerHTML=`<div class="empty"><b>Tasks need the Shaula service.</b><br/>${esc(d.message||'Service unreachable.')}</div>`; return;
+  }
+  if(!runs.length){
+    board.innerHTML=`<div class="empty"><b>No tasks yet.</b><br/>Open a staff member and run one — it’ll show up here and stay while it works.</div>`; return;
+  }
+  board.innerHTML=runs.map(r=>{
+    const [cls,txt]=stBadge(r.status);
+    const total=r.stepsTotal||0, done=r.stepsDone||0;
+    const pct=total?Math.round(100*done/total):(r.status==='working'?12:0);
+    const cur=r.currentStep?`Step ${(r.currentStep.index||0)+1} of ${total} · ${esc(r.currentStep.title)} (${esc(r.currentStep.assignee||'')})`
+             :total?`${done} of ${total} steps done`:'';
+    const note=r.queueNote?esc(r.queueNote):r.etaNote?esc(r.etaNote):r.queuePosition?`Position ${r.queuePosition} in line`:'';
+    const approve=r.status==='needs_approval'
+      ?`<div class="actions"><button data-approve="${esc(r.id)}">Approve &amp; run</button><button class="ghost" data-reject="${esc(r.id)}">Not now</button><span class="muted" data-rstatus="${esc(r.id)}"></span></div>`:'';
+    return `<div class="task">
+      <div class="thead"><div><div class="tname">${esc(capLabel(r.capability))}</div>${r.topic?`<div class="ttopic">${esc(r.topic)}</div>`:''}</div>
+        <span class="st-badge ${cls}">${txt}</span></div>
+      ${total?`<div class="prog"><i style="width:${pct}%"></i></div>`:''}
+      ${cur?`<div class="sub">${cur}</div>`:''}
+      ${note?`<div class="sub">${note}</div>`:''}
+      ${approve}
+      ${done>0?`<div class="actions"><button class="viewbtn" data-view="${esc(r.id)}">View output ▾</button></div><div class="tout" data-out="${esc(r.id)}" hidden></div>`:''}</div>`;
+  }).join('');
+  board.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>actOnRun(b.getAttribute('data-approve'),'approve'));
+  board.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>actOnRun(b.getAttribute('data-reject'),'reject'));
+  board.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>toggleOut(b.getAttribute('data-view'), b));
+}
+async function actOnRun(rid, kind){
+  boardBusy=true;
+  const st=document.querySelector(`[data-rstatus="${rid}"]`); if(st) st.textContent=kind==='approve'?'approving…':'parking…';
+  try{ await fetch('/api/runs/'+kind,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:rid})}); }
+  catch(e){}
+  boardBusy=false; lastBoardSig=''; refreshBoard();
+}
+
+/* ── the deliverable: what a task actually produced ─────────────────────── */
+function renderOut(d){
+  if(!d || d.ok===false) return `<div class="viol">${esc((d&&d.message)||'Could not load the output.')}</div>`;
+  let html='';
+  if(d.previewUrl){
+    const path=String(d.previewUrl).replace(/^https?:\/\/[^/]+/,'');   // same-origin via the cockpit proxy
+    html+=`<a class="outlink" href="${esc(path)}" target="_blank" rel="noopener">Open the generated site ↗</a>`;
+  }
+  const steps=(d.steps||[]).filter(s=>s.output && String(s.output).trim());
+  html+=steps.map(s=>`<div class="outstep"><div class="outlabel">${esc(s.title||s.assignee||'Output')}${s.assignee?` · ${esc(s.assignee)}`:''}</div><div class="outbody">${esc(String(s.output))}</div></div>`).join('');
+  if(!html) html='<div class="muted">No output yet — still working.</div>';
+  return html;
+}
+async function toggleOut(rid, btn){
+  const panel=document.querySelector(`[data-out="${rid}"]`);
+  if(!panel) return;
+  if(!panel.hidden){ panel.hidden=true; openOuts.delete(rid); btn.textContent='View output ▾'; return; }
+  panel.hidden=false; openOuts.add(rid); btn.textContent='Hide output ▴';
+  panel.innerHTML='<div class="muted">loading…</div>';
+  try{ panel.innerHTML=renderOut(await (await fetch('/api/run/'+encodeURIComponent(rid))).json()); }
+  catch(e){ panel.innerHTML='<div class="viol">Error loading the output.</div>'; }
+}
+
+setInterval(refreshBoard, 3000);   // keep the board + nav badge live from anywhere
+refreshBoard();
+loadRoster();                      // fill the staff roster from the live svc manifest
+</script>
+</body>
+</html>

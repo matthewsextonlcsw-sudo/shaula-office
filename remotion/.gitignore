@@ -1,0 +1,7 @@
+# Remotion social-video project — local artifacts, never committed.
+node_modules/
+out/
+.remotion/
+# rendered media (defense-in-depth; out/ already covers the default target)
+*.mp4
+*.webm
