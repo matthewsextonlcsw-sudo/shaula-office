@@ -7,7 +7,7 @@
 // Bump: pick a newer release tag + CPython version from
 // https://github.com/astral-sh/python-build-standalone/releases (use the `install_only` assets).
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -38,9 +38,19 @@ if (!triple) {
 const isWinTarget = target.startsWith('win32');
 const pyBin = isWinTarget ? join(DEST, 'python.exe') : join(DEST, 'bin', 'python3');
 
-if (existsSync(pyBin)) {
-  console.log(`[fetch-python] already present: ${pyBin}`);
+// The cache check is TARGET-aware: a vendored runtime for a different
+// platform/arch (cross-build leftovers) must be replaced, not reused —
+// an arm64 python inside an x64 app crashes on every real Intel Mac.
+// .target records what the current vendor/python actually is.
+const stampPath = join(DEST, '.target');
+const stamp = existsSync(stampPath) ? readFileSync(stampPath, 'utf8').trim() : null;
+if (existsSync(pyBin) && stamp === target) {
+  console.log(`[fetch-python] already present for ${target}: ${pyBin}`);
   process.exit(0);
+}
+if (existsSync(DEST)) {
+  console.log(`[fetch-python] replacing vendored runtime (${stamp ?? 'unstamped'} -> ${target})`);
+  rmSync(DEST, { recursive: true, force: true });
 }
 
 const asset = `cpython-${PY_VERSION}+${PBS_TAG}-${triple}-install_only.tar.gz`;
@@ -58,4 +68,5 @@ if (!existsSync(pyBin)) {
   console.error(`[fetch-python] expected ${pyBin} after extract — layout changed?`);
   process.exit(1);
 }
-console.log(`[fetch-python] ready: ${pyBin}`);
+writeFileSync(stampPath, target + '\n');
+console.log(`[fetch-python] ready for ${target}: ${pyBin}`);
