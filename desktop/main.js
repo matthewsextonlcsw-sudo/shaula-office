@@ -139,6 +139,11 @@ function startCockpit() {
       SHAULA_ROUTE_CHAT: 'ollama:' + model,
       SHAULA_ROUTE_CONTENT: 'ollama:' + model,
       SHAULA_ROUTE_HUMANIZE: 'ollama:' + model,
+      // The built-in office writes runs + generated sites OUTSIDE the app
+      // bundle (packaged apps are read-only mounts) — into the user's own
+      // app-data folder, like every other Mac app.
+      SHAULA_STATE_DIR: path.join(app.getPath('userData'), 'office'),
+      SHAULA_SITES_DIR: path.join(app.getPath('userData'), 'sites'),
     },
     stdio: 'inherit',
   });

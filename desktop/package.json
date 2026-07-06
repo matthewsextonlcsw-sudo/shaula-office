@@ -1,7 +1,7 @@
 {
   "name": "shaula-desktop",
   "productName": "Shaula",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Shaula — your free, house-nothing AI office. Runs local; nothing leaves your machine.",
   "private": true,
   "license": "MIT",
@@ -48,6 +48,22 @@
         "filter": [
           "**/*",
           "!__pycache__"
+        ]
+      },
+      {
+        "from": "../workflows",
+        "to": "workflows",
+        "filter": [
+          "**/*",
+          "!__pycache__",
+          "!test_*.py"
+        ]
+      },
+      {
+        "from": "../templates",
+        "to": "templates",
+        "filter": [
+          "**/*"
         ]
       },
       {

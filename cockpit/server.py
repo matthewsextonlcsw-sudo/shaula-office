@@ -21,6 +21,11 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(REPO / "engine"))
 import router  # noqa: E402
 import svc_client  # noqa: E402  — server-side bridge to shaula-svc authoring
+import local_runner  # noqa: E402 — the built-in office (no svc needed)
+
+# With no hosted svc wired (the desktop app, any offline box), the office runs
+# HERE: same routes, same shapes, local execution + the same honesty gate.
+LOCAL_OFFICE = not svc_client.configured()
 
 PORT = 8770
 
@@ -41,7 +46,8 @@ def _build_demo_site() -> dict:
     """Run the deterministic honesty engine on the demo survey; return where it landed."""
     import build_practice as BP
     import pipeline as P
-    res = P.build_site(BP.DEMO_SURVEY, sites_dir=str(REPO / "sites"))
+    # Writable outside the app bundle (packaged builds are read-only mounts).
+    res = P.build_site(BP.DEMO_SURVEY, sites_dir=str(local_runner._sites_dir()))
     return {"slug": res["slug"], "dir": str(res["dir"]), "business": res.get("business_name")}
 
 
@@ -49,6 +55,8 @@ def _create_task(capability: str, topic: str, *, idempotency_key: str = "") -> d
     """Queue a task (run) on the svc → it lands on the live board. website-launch
     needs a practice profile, so on the demo box we idempotently seed the
     deterministic demo intake first; if that fails, create_run returns the honest 409."""
+    if LOCAL_OFFICE:
+        return local_runner.create_run(capability, topic, idempotency_key=idempotency_key)
     if capability == "website-launch":
         try:
             import build_practice as BP
@@ -204,26 +212,48 @@ class H(BaseHTTPRequestHandler):
             self._json(200, {"configured": svc_client.configured(),
                              "practice": svc_client._pid()})
         elif self.path == "/api/roster":
-            # The staff roster, driven straight from the svc manifest so it never
-            # drifts — every workflow the svc can run is reachable from here.
-            self._json(200, svc_client.roster())
+            # The staff roster, driven straight from the manifest so it never
+            # drifts — every workflow the office can run is reachable from here.
+            self._json(200, local_runner.roster() if LOCAL_OFFICE else svc_client.roster())
         elif self.path == "/api/stats":
             # The Analyst surface — real counts only (no estimates).
-            self._json(200, svc_client.stats())
+            if LOCAL_OFFICE:
+                runs = local_runner.list_runs()["runs"]
+                self._json(200, {"ok": True, "local": True, "counts": {
+                    "runsFinished": sum(1 for r in runs if r["status"] == "approved"),
+                    "essaysLive": 0, "inquiries": 0}})
+            else:
+                self._json(200, svc_client.stats())
         elif self.path == "/api/inquiries":
             # The Office Manager surface — consult inquiries from the live site.
-            self._json(200, svc_client.inquiries())
+            self._json(200, {"ok": True, "inquiries": [], "local": True}
+                       if LOCAL_OFFICE else svc_client.inquiries())
         elif self.path == "/api/runs":
             # The live task board polls this — runs queued/working/awaiting-approval,
             # newest first, each with progress (stepsDone/total, current step).
-            self._json(200, svc_client.list_runs())
+            self._json(200, local_runner.list_runs() if LOCAL_OFFICE else svc_client.list_runs())
         elif self.path.startswith("/api/run/"):
             # One full run — every step's OUTPUT (the deliverable). "where are the outputs"
             rid = self.path[len("/api/run/"):].split("?")[0]
-            self._json(200, svc_client.get_run(rid))
+            self._json(200, local_runner.get_run(rid) if LOCAL_OFFICE else svc_client.get_run(rid))
         elif self.path.startswith("/sites/"):
-            # Proxy the svc-served generated site preview so "Open the site" works
-            # from the cockpit origin (the deliverable a website task produced).
+            # The generated site preview. Local office: serve straight from the
+            # writable sites dir (path-confined). Hosted: proxy the svc.
+            if LOCAL_OFFICE:
+                base = local_runner._sites_dir().resolve()
+                rel = self.path[len("/sites/"):].split("?")[0]
+                target = (base / rel).resolve()
+                if base not in target.parents and target != base:
+                    return self._json(400, {"error": "bad path"})
+                if target.is_dir():
+                    target = target / "index.html"
+                if target.is_file():
+                    ctype = ("text/html; charset=utf-8" if target.suffix in (".html", ".htm")
+                             else "text/css" if target.suffix == ".css"
+                             else "application/javascript" if target.suffix == ".js"
+                             else "application/octet-stream")
+                    return self._send(200, target.read_bytes(), ctype)
+                return self._json(404, {"error": "no such site file"})
             import urllib.request as _u
             try:
                 with _u.urlopen(svc_client._svc_url() + self.path, timeout=10) as r:
@@ -302,11 +332,11 @@ class H(BaseHTTPRequestHandler):
                 idempotency_key=str(data.get("idempotencyKey", "")),
             ))
         elif self.path == "/api/runs/approve":
-            self._json(200, svc_client.approve_run(
-                str(data.get("runId", "")), note=str(data.get("note", ""))))
+            fn = local_runner.approve_run if LOCAL_OFFICE else svc_client.approve_run
+            self._json(200, fn(str(data.get("runId", "")), note=str(data.get("note", ""))))
         elif self.path == "/api/runs/reject":
-            self._json(200, svc_client.reject_run(
-                str(data.get("runId", "")), note=str(data.get("note", ""))))
+            fn = local_runner.reject_run if LOCAL_OFFICE else svc_client.reject_run
+            self._json(200, fn(str(data.get("runId", "")), note=str(data.get("note", ""))))
         else:
             self._json(404, {"error": "not found"})
 
