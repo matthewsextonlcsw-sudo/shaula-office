@@ -3,52 +3,223 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="canonical" href="https://shaula.vibecheck.luxury/">
 <title>Shaula — the AI-staffed office for a therapy practice</title>
 <meta name="description" content="An open, honesty-gated agent harness that runs a therapy practice's back office on your own machine. Free local tier, or your own Google Cloud. Nothing is hosted for you; this office houses nothing.">
+<link rel="icon" href="https://vibecheck.luxury/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sansita+Swashed:ital,wght@0,400;0,700;0,900;1,700;1,900&family=Shrikhand&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/piano-hero.css">
 <style>
-  :root{--bg:#0b0e14;--panel:#121826;--ink:#e8ecf4;--dim:#9aa7bd;--line:#223047;--gold:#e8c469;--green:#69d59a}
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--ink);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-  .wrap{max-width:880px;margin:0 auto;padding:56px 24px 80px}
-  h1{font-size:2.1rem;line-height:1.2;letter-spacing:-.5px}
-  h1 .star{color:var(--gold)}
-  .tag{color:var(--dim);margin:14px 0 34px;font-size:1.06rem;max-width:640px}
-  h2{font-size:1.15rem;margin:38px 0 12px;color:var(--gold);letter-spacing:.4px;text-transform:uppercase;font-weight:600}
-  p{color:var(--dim);margin:10px 0}
-  strong{color:var(--ink)}
-  .term{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-x:auto;color:var(--ink)}
-  .term .c{color:var(--dim)}
-  .term .p{color:var(--green)}
-  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.95rem}
-  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-  th{color:var(--ink);font-weight:600}
-  td{color:var(--dim)}
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:14px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
-  .card b{color:var(--ink);display:block;margin-bottom:6px}
-  .card p{font-size:.93rem;margin:0}
-  a{color:var(--gold);text-decoration:none}
-  a:hover{text-decoration:underline}
-  .cta{display:inline-block;background:var(--gold);color:#14100a;font-weight:700;padding:12px 22px;border-radius:9px;margin:22px 12px 0 0}
-  .cta.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold)}
-  footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:.88rem}
+/* ── VC site chrome (lifted from the slug-page template) ── */
+  :root {
+    --cream: #FBF2DE;
+    --cream-2: #F5E6C9;
+    --ink: #1A0B2E;
+    --ink-2: #3a1668;
+    --pink: #FF2D8E;
+    --magenta: #D81B60;
+    --orange: #FF6B1A;
+    --yellow: #F5B711;
+    --gold: #F5B711;
+    --cyan: #0CC4D9;
+    --violet: #7B2CBF;
+    --purple: #7B2CBF;
+    --rule: rgba(26, 11, 46, 0.18);
+    --rule-strong: rgba(26, 11, 46, 0.45);
+
+    --display: 'Sansita Swashed', Georgia, serif;
+    --display-2: 'Shrikhand', Georgia, serif;
+    --serif: Charter, 'Iowan Old Style', 'Hoefler Text', Georgia, serif;
+    --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.55;
+  }
+  .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+  nav.top {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(251, 242, 222, 0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1.5px solid var(--rule);
+  }
+  nav.top .row { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .logo {
+    font-family: var(--display-2);
+    font-size: 24px;
+    color: var(--ink);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+  }
+  .logo .vibe { color: var(--pink); }
+  .logo .dot {
+    display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+    background: var(--cyan); margin-left: 3px;
+    animation: dotpulse 2.4s ease-in-out infinite;
+  }
+  @keyframes dotpulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.35); } }
+  nav.top .links { display: flex; align-items: center; gap: 28px; font-size: 15px; color: var(--ink); }
+  nav.top .links a { text-decoration: none; opacity: 0.75; }
+  nav.top .links a:hover { opacity: 1; }
+  nav.top .links a.active { opacity: 1; font-weight: 600; text-decoration: underline; text-decoration-color: var(--pink); text-underline-offset: 3px; }
+  @media (max-width: 720px) { nav.top .links .hide-sm { display: none; } }
+
+  .btn-pill {
+    display: inline-block;
+    background: var(--ink); color: var(--cream);
+    font-family: var(--serif); font-weight: 600; font-size: 15.5px;
+    padding: 10px 22px; border-radius: 999px;
+    text-decoration: none; border: 1.5px solid var(--ink);
+    transition: all 140ms ease;
+  }
+  .btn-pill:hover { background: var(--pink); border-color: var(--pink); color: #fff; transform: translateY(-1px); }
+  .btn-ghost {
+    display: inline-block;
+    background: transparent; color: var(--ink);
+    font-family: var(--serif); font-weight: 600; font-size: 15.5px;
+    padding: 10px 22px; border-radius: 999px;
+    text-decoration: none; border: 1.5px solid var(--rule-strong);
+    transition: all 140ms ease;
+  }
+  .btn-ghost:hover { border-color: var(--ink); background: rgba(26,11,46,0.04); color: var(--ink); }
+
+/* ── page body ── */
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 24px 80px; }
+  .wrap h2 {
+    font-family: var(--display);
+    font-size: 30px; line-height: 1.15;
+    margin: 46px 0 14px; color: var(--ink);
+  }
+  .wrap p { color: rgba(26,11,46,0.82); margin: 10px 0; }
+  .wrap strong { color: var(--ink); }
+  .wrap a { color: var(--magenta); text-decoration: none; }
+  .wrap a:hover { text-decoration: underline; }
+  .lede { font-size: 20px; line-height: 1.55; max-width: 66ch; }
+  .term {
+    background: var(--ink); border: 1.5px solid var(--ink); border-radius: 12px;
+    padding: 18px 20px; font: 14px/1.7 var(--mono);
+    overflow-x: auto; color: var(--cream); white-space: pre;
+  }
+  .term .c { color: rgba(251,242,222,0.55); }
+  .term .p { color: var(--cyan); }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 16px; }
+  th, td { text-align: left; padding: 12px; border-bottom: 1.5px solid var(--rule); vertical-align: top; }
+  th { color: var(--ink); font-weight: 700; }
+  td { color: rgba(26,11,46,0.78); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
+  .card { background: var(--cream-2); border: 1.5px solid var(--rule); border-radius: 14px; padding: 18px 20px; }
+  .card b { color: var(--ink); display: block; margin-bottom: 6px; font-size: 18px; }
+  .card p { font-size: 15.5px; margin: 0; }
+  .cta-row { margin: 22px 0 4px; display: flex; flex-wrap: wrap; gap: 12px; }
+  .smallprint { font-size: 14.5px; color: rgba(26,11,46,0.66); margin-top: 12px; }
+
+/* ── VC panel footer ── */
+  footer.panel-footer {
+    background: var(--cream-2);
+    border-top: 1.5px solid var(--ink);
+    padding: 40px 0 48px;
+    font-size: 15px;
+  }
+  .crisis-banner {
+    border: 1.5px solid var(--rule-strong); border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 32px;
+    font-size: 15px; color: rgba(26,11,46,0.82);
+  }
+  .crisis-banner strong { color: var(--pink); }
+  .footer-cols { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 32px; margin-bottom: 28px; }
+  @media (max-width: 880px) { .footer-cols { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .footer-cols { grid-template-columns: 1fr; } }
+  .footer-cols h5 {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: rgba(26,11,46,0.55); margin: 0 0 12px;
+  }
+  .footer-cols ul { list-style: none; padding: 0; margin: 0; }
+  .footer-cols li { margin-bottom: 9px; }
+  .footer-cols a { color: rgba(26,11,46,0.78); text-decoration: none; font-size: 14.5px; }
+  .footer-cols a:hover { color: var(--pink); text-decoration: underline; text-decoration-color: var(--pink); }
+  .footer-logo { font-family: var(--display-2); font-size: 22px; color: var(--ink); text-decoration: none; }
+  .footer-logo .vibe { color: var(--pink); }
+  .footer-tagline { font-size: 14px; color: rgba(26,11,46,0.62); margin-top: 8px; max-width: 34ch; }
+  .fineprint {
+    border-top: 1px solid var(--rule); padding-top: 18px;
+    font-size: 12.5px; line-height: 1.7; color: rgba(26,11,46,0.55);
+  }
+  @media (prefers-reduced-motion: reduce) { .logo .dot { animation: none !important; } }
 </style>
 </head>
 <body>
+
+<nav class="top">
+  <div class="container row">
+    <a class="logo" href="https://vibecheck.luxury/" aria-label="VibeCheck home">
+      <span class="vibe">vibe</span><span>check</span><span class="dot" aria-hidden="true"></span>
+    </a>
+    <div class="links">
+      <a href="https://vibecheck.luxury/why-vibecheck/">why vibecheck</a>
+      <a href="https://vibecheck.luxury/emr/" class="hide-sm">emr</a>
+      <a href="https://vibecheck.luxury/shaula/" class="hide-sm">shaula</a>
+      <a href="https://vibecheck.luxury/pricing/" class="hide-sm">pricing</a>
+      <a href="https://vibecheck.luxury/story/" class="hide-sm">story</a>
+      <a href="https://vibecheck.luxury/blog/" class="hide-sm">blog</a>
+      <a href="/" class="active current">get shaula</a>
+      <a class="btn-pill" href="https://vibecheck.luxury/pricing/">Pricing</a>
+      <a class="btn-ghost hide-sm" href="https://app.vibecheck.luxury" target="_blank" rel="noopener noreferrer">Open app →</a>
+    </div>
+  </div>
+</nav>
+
+<section class="piano-hero">
+  <div class="ph-wrap">
+    <p class="ph-eyebrow"><span class="pulse"></span>Included with VibeCheck · Free download for Mac &amp; PC</p>
+    <h1><span style="color:#F5B711">✶</span> Shaula</h1>
+    <p class="ph-tag">The AI-staffed <strong>back office</strong> for a therapy practice — run as kanban workflows <strong>on your own machine</strong>. Nobody hosts your data. This office houses nothing.</p>
+  </div>
+  <div class="hero-piano-stage" id="stage">
+    <div id="floor-pulse"></div>
+    <div class="piano" id="piano"></div>
+  </div>
+  <div class="piano-controls">
+    <button id="muteBtn" aria-pressed="false">▶ tap to start</button>
+    <button id="replayBtn" title="Restart the song">↻ replay</button>
+    <select id="songPicker" aria-label="Song" title="Pick a song">
+      <option value="0">Hero</option><option value="1">Cover</option><option value="2">Ballad</option>
+    </select>
+    <span id="piano-hint">click a key ↑</span>
+    <div class="voice-switcher" role="radiogroup" aria-label="Instrument voice">
+      <button class="voice-btn active" data-voice="salamander">piano</button>
+      <button class="voice-btn" data-voice="xylophone">xylophone</button>
+      <button class="voice-btn" data-voice="harp">harp</button>
+      <button class="voice-btn" data-voice="guitarElectric">guitar</button>
+      <button class="voice-btn" data-voice="synth">synth</button>
+    </div>
+    <span class="legend">keyboard: a–l whites · w·e·t·y·u blacks</span>
+  </div>
+</section>
+<script src="assets/piano.js" defer></script>
+
 <div class="wrap">
-  <h1><span class="star">✶</span> Shaula</h1>
-  <p class="tag">The AI-staffed <strong>back office</strong> for a therapy practice — website, blog,
-  FAQ, review replies, newsletters, paperwork drafts — run as kanban workflows
-  <strong>on your own machine</strong>. Nobody hosts your data. This office houses nothing.</p>
+  <p class="lede">Shaula runs the practice's <strong>back office</strong> — website, blog,
+  FAQ, review replies, newsletters, paperwork drafts — as kanban workflows a person approves.
+  An open, honesty-gated agent harness. Free local tier, or your own Google Cloud.</p>
 
   <h2>Download</h2>
   <p><strong>Shaula Desktop</strong> — the app. Download, open, and the first-run screen
   walks you through everything (it even installs the free local AI for you). No account,
   no terminal, no fees, no telemetry.</p>
-  <a class="cta" href="https://github.com/matthewsextonlcsw-sudo/shaula-office/releases/latest/download/Shaula-mac.dmg">⬇&nbsp; Download for Mac</a>
-  <a class="cta ghost" href="https://github.com/matthewsextonlcsw-sudo/shaula-office/releases/latest/download/Shaula-mac-intel.dmg">⬇&nbsp; Intel Mac</a>
-  <a class="cta ghost" href="https://github.com/matthewsextonlcsw-sudo/shaula-office/releases/latest/download/Shaula-windows-setup.exe">⬇&nbsp; Windows</a>
-  <p style="font-size:.85rem;margin-top:10px">Mac: Apple&nbsp;Silicon (main button) or Intel, macOS&nbsp;12+, signed and notarized ·
+  <div class="cta-row">
+    <a class="btn-pill" href="https://github.com/matthewsextonlcsw-sudo/shaula-office/releases/latest/download/Shaula-mac.dmg">⬇&nbsp; Download for Mac</a>
+    <a class="btn-ghost" href="https://github.com/matthewsextonlcsw-sudo/shaula-office/releases/latest/download/Shaula-mac-intel.dmg">⬇&nbsp; Intel Mac</a>
+    <a class="btn-ghost" href="https://github.com/matthewsextonlcsw-sudo/shaula-office/releases/latest/download/Shaula-windows-setup.exe">⬇&nbsp; Windows</a>
+  </div>
+  <p class="smallprint">Mac: Apple&nbsp;Silicon (main button) or Intel, macOS&nbsp;12+, signed and notarized ·
   Windows&nbsp;10/11 64-bit — unsigned by choice (we'd rather not pay the certificate toll), so
   SmartScreen shows an "unrecognized app" notice once: click More&nbsp;info&nbsp;→&nbsp;Run&nbsp;anyway.
   Verify your download instead with the checksums on the release page ·
@@ -56,8 +227,7 @@
   <a href="https://github.com/matthewsextonlcsw-sudo/shaula-office/releases/latest">All downloads&nbsp;→</a></p>
 
   <h2>Prefer the terminal?</h2>
-  <div class="term">
-<span class="c"># 1. clone</span>
+  <div class="term"><span class="c"># 1. clone</span>
 <span class="p">$</span> git clone https://github.com/matthewsextonlcsw-sudo/shaula-office.git
 <span class="p">$</span> cd shaula-office
 
@@ -65,10 +235,11 @@
 <span class="p">$</span> bin/shaula-setup --local
 
 <span class="c"># …or the cloud brain: Gemini on YOUR Google Cloud project, YOUR billing</span>
-<span class="p">$</span> bin/shaula-setup --cloud YOUR_PROJECT_ID
+<span class="p">$</span> bin/shaula-setup --cloud YOUR_PROJECT_ID</div>
+  <div class="cta-row">
+    <a class="btn-ghost" href="https://github.com/matthewsextonlcsw-sudo/shaula-office">View the source on GitHub</a>
+    <a class="btn-ghost" href="https://github.com/matthewsextonlcsw-sudo/shaula-office/blob/main/docs/GETTING_STARTED.md">Read the full guide</a>
   </div>
-  <a class="cta ghost" href="https://github.com/matthewsextonlcsw-sudo/shaula-office">View the source on GitHub</a>
-  <a class="cta ghost" href="https://github.com/matthewsextonlcsw-sudo/shaula-office/blob/main/docs/GETTING_STARTED.md">Read the full guide</a>
 
   <h2>Pick your brain</h2>
   <table>
@@ -100,11 +271,48 @@
   Node 20+ for the board UI · roughly 2&nbsp;GB for the harness and 5&nbsp;GB for the local model.
   The setup walkthrough checks all of this before it touches anything, and never runs a billable
   command for you.</p>
-
-  <footer>
-    MIT-licensed. Built on the <a href="https://github.com/NousResearch/hermes-agent">Nous Research Hermes agent</a> (MIT),
-    vendored, pinned, and hardened. Informational software, not clinical advice or a medical device.
-  </footer>
 </div>
+
+<footer class="panel-footer">
+  <div class="container">
+
+    <div class="crisis-banner">
+      <strong>Crisis support, US:</strong> If you or someone you know is in crisis, call or text <strong>988</strong> (Suicide &amp; Crisis Lifeline) or go to your nearest emergency department. VibeCheck is not a crisis service.
+    </div>
+
+    <div class="footer-cols">
+      <div>
+        <a class="footer-logo" href="https://vibecheck.luxury/"><span class="vibe">vibe</span><span>check</span></a>
+        <p class="footer-tagline">Between-session mental health intelligence. A product of Mental Wealth Solutions, Inc.</p>
+      </div>
+      <div>
+        <h5>Explore</h5>
+        <ul>
+          <li><a href="https://vibecheck.luxury/why-vibecheck/">Why VibeCheck</a></li>
+          <li><a href="https://vibecheck.luxury/emr/">VibeCheck EMR</a></li>
+          <li><a href="https://vibecheck.luxury/science/">The science</a></li>
+          <li><a href="https://vibecheck.luxury/story/">The story</a></li>
+          <li><a href="https://vibecheck.luxury/pricing/">Pricing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Company</h5>
+        <ul>
+          <li><a href="https://mentalwealthsolutions.org/">MWS, Inc.</a></li>
+          <li><a href="mailto:matthewsextonlcsw@mentalwealthsolutions.org">Contact Matthew</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="fineprint">
+      Matthew Sexton, LCSW, NATC · Founder + CEO, Mental Wealth Solutions, Inc. ·
+      Shaula is included with VibeCheck and runs on your own machine; nothing is hosted for you. ·
+      MIT-licensed. Built on the <a href="https://github.com/NousResearch/hermes-agent">Nous Research Hermes agent</a> (MIT), vendored, pinned, and hardened. ·
+      Informational software, not clinical advice or a medical device.
+    </div>
+
+  </div>
+</footer>
+
 </body>
 </html>

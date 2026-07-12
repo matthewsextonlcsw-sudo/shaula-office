@@ -1,0 +1,257 @@
+/* piano-hero.css — the synth piano as the slug-page hero (THE SHOW after-party skin).
+   Extracted from the pre-Show homepage hero + candy reskin; namespaced .piano-hero.
+   Needs /piano.js and the standard .piano-hero markup block. */
+.piano-hero {
+  position: relative;
+  padding: 40px 0 12px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2A1452 0%, #1A0B2E 45%, #0F0721 100%);
+  color: #FBF2DE;
+}
+.piano-hero .ph-wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.piano-hero .ph-eyebrow {
+  font: 500 12px/1.4 ui-monospace, 'SF Mono', Menlo, monospace;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: #0CC4D9; margin: 0 0 14px;
+}
+.piano-hero .ph-eyebrow .pulse { display:inline-block; width:8px; height:8px; border-radius:50%;
+  background:#FF2D8E; margin-right:8px; box-shadow:0 0 10px #FF2D8E; }
+.piano-hero h1 {
+  font-size: clamp(30px, 4.6vw, 54px); line-height: 1.08; letter-spacing: -0.01em;
+  margin: 0 0 14px; color: #FBF2DE; max-width: 20ch;
+}
+.piano-hero .ph-tag { font-size: clamp(15px, 1.4vw, 18px); line-height: 1.5; max-width: 62ch;
+  color: rgba(251,242,222,0.82); margin: 0 0 6px; }
+.piano-hero .ph-tag strong, .piano-hero h1 .num { color: #F5B711; }
+@media (max-width: 880px) { .piano-hero { padding-top: 30px; } }
+
+  .piano-hero .hero-piano-stage {
+    position: relative; z-index: 1;
+    width: 100%;
+    height: 320px;
+    perspective: 2200px;
+    perspective-origin: 50% -10%;
+    margin-top: -20px;
+    overflow: visible;
+  }
+  .piano-hero .hero-piano-stage .piano { transform: translateX(-50%) rotateX(34deg); }
+  @media (max-width: 880px) {
+    .piano-hero .hero-piano-stage { height: 260px; margin-top: 0; }
+  }
+  .piano-hero #floor-pulse {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 80%,
+      color-mix(in srgb, var(--pulse-color, var(--pink)) 40%, transparent) 0%, transparent 60%);
+    opacity: 0; pointer-events: none;
+    transition: opacity 400ms ease-out;
+  }
+  #floor-pulse.on { opacity: 0.7; transition: opacity 80ms ease-out; }
+  .piano-hero .piano {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%) rotateX(48deg);
+    transform-origin: bottom center;
+    transform-style: preserve-3d;
+    display: flex; gap: 0;
+  }
+  .piano-hero .hero-piano-stage .key.white { height: 340px; width: 68px; }
+  .piano-hero .hero-piano-stage .key.black { height: 215px; width: 42px; }
+  .piano-hero .key {
+    position: relative;
+    cursor: pointer;
+    transition: transform 70ms ease-out, box-shadow 90ms;
+    transform-origin: top center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .piano-hero .key.white {
+    width: 56px; height: 280px;
+    background: linear-gradient(180deg, #FFFFFF 0%, #FBF2DE 55%, color-mix(in srgb, var(--key-color) 22%, #FBF2DE) 100%);
+    border: 1.5px solid rgba(26,11,46,0.35);
+    border-bottom: 5px solid var(--key-color);
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 6px 14px color-mix(in srgb, var(--key-color) 22%, transparent);
+  }
+  .piano-hero .key.black {
+    position: absolute;
+    width: 34px; height: 180px;
+    background: linear-gradient(180deg, #3a1668 0%, #2a0d4f 65%, color-mix(in srgb, var(--key-color) 35%, #2a0d4f) 100%);
+    border: 1.5px solid rgba(0,0,0,0.6);
+    border-bottom: 4px solid var(--key-color);
+    border-radius: 0 0 4px 4px;
+    z-index: 2; top: 0;
+    box-shadow: 0 5px 12px color-mix(in srgb, var(--key-color) 25%, transparent);
+  }
+  .piano-hero .key.pressed.white {
+    background: linear-gradient(180deg, #FFFFFF 0%, var(--key-color) 70%);
+    transform: scaleY(0.98) translateY(2px);
+    box-shadow: 0 0 48px var(--key-color);
+  }
+  .piano-hero .key.pressed.black {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--key-color) 70%, white) 0%, var(--key-color) 100%);
+    transform: scaleY(0.97) translateY(2px);
+    box-shadow: 0 0 32px var(--key-color);
+  }
+  .piano-hero #piano-hint {
+    display: inline-flex; align-items: center;
+    background: var(--pink); color: var(--cream);
+    padding: 8px 16px; border-radius: 999px;
+    font: 500 12px/1 var(--mono);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    pointer-events: none;
+    transition: opacity 600ms ease-out, transform 600ms ease-out;
+    animation: hint-bob 1.6s ease-in-out infinite;
+    box-shadow: 0 4px 14px rgba(255,45,142,0.35);
+  }
+  @keyframes hint-bob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+  }
+  #piano-hint.gone { opacity: 0; transform: scale(0.85); pointer-events: none; }
+  .piano-hero .piano-controls {
+    display: flex; gap: 14px; align-items: center;
+    justify-content: center;
+    padding: 24px 0 0;
+    font: 400 13px/1.4 var(--mono);
+    flex-wrap: wrap;
+  }
+  .piano-hero .piano-controls .legend {
+    color: rgba(26,11,46,0.55);
+    font-size: 11.5px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .piano-hero #muteBtn, .piano-hero #replayBtn, .piano-hero #songPicker {
+    background: rgba(26,11,46,0.06);
+    border: 1.5px solid var(--rule-strong);
+    color: var(--ink);
+    padding: 8px 18px; border-radius: 999px;
+    cursor: pointer; font: inherit; font-weight: 500;
+    transition: all 140ms;
+  }
+  #songPicker { padding-right: 12px; }
+  #muteBtn:hover, #replayBtn:hover, #songPicker:hover { background: rgba(26,11,46,0.12); }
+  #muteBtn.muted { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+  .piano-hero .voice-switcher {
+    display: inline-flex; gap: 4px;
+    background: rgba(26,11,46,0.05);
+    border: 1.5px solid var(--rule);
+    border-radius: 999px;
+    padding: 4px;
+  }
+  .piano-hero .voice-btn {
+    background: transparent;
+    border: none;
+    color: rgba(26,11,46,0.7);
+    padding: 6px 14px; border-radius: 999px;
+    cursor: pointer;
+    font: 500 12px/1 var(--mono);
+    letter-spacing: 0.04em; text-transform: lowercase;
+    transition: background 120ms, color 120ms;
+  }
+  .voice-btn:hover { color: var(--ink); background: rgba(26,11,46,0.06); }
+  .voice-btn.active { background: var(--ink); color: var(--cream); box-shadow: 0 2px 8px rgba(26,11,46,0.18); }
+
+  .piano-hero #muteBtn, .piano-hero #replayBtn, .piano-hero #songPicker {
+    background: rgba(251,242,222,0.08);
+    border-color: rgba(251,242,222,0.3);
+    color: var(--cream);
+  }
+  .piano-hero #muteBtn:hover, .piano-hero #replayBtn:hover, .piano-hero #songPicker:hover { background: rgba(251,242,222,0.18); }
+  .piano-hero #muteBtn.muted { background: var(--pink); color: var(--cream); border-color: var(--pink); }
+  .piano-hero #songPicker option { background: var(--ink); color: var(--cream); }
+  .piano-hero .voice-switcher {
+    background: rgba(251,242,222,0.06);
+    border-color: rgba(251,242,222,0.2);
+  }
+  .piano-hero .voice-btn { color: rgba(251,242,222,0.7); }
+  .piano-hero .voice-btn:hover { color: var(--cream); background: rgba(251,242,222,0.08); }
+  .piano-hero .voice-btn.active { background: var(--cream); color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  .piano-hero .piano-controls .legend { color: rgba(251,242,222,0.45); }
+
+  /* ═════════════════════════════════════════════════════════════
+     THE SHOW after-party — piano reskin (ref: vc-piano-skin.jpg)
+     Indigo upright body, pink→cyan key split, brass hardware.
+     Piano JS, voices, songs, key map untouched — palette only.
+     ═════════════════════════════════════════════════════════════ */
+  /* upright body behind the tilted keys: indigo wood + gold trim + blank brass nameplate */
+  .piano-hero .hero-piano-stage::before {
+    content: "";
+    position: absolute; z-index: -1;
+    left: 50%; transform: translateX(-50%);
+    top: -18px; height: 52%;
+    width: min(1480px, 97%);
+    background:
+      repeating-linear-gradient(92deg, rgba(0,0,0,.10) 0 2px, transparent 2px 9px),
+      linear-gradient(180deg, #241a52 0%, #1a1440 55%, #151038 100%);
+    border: 1.5px solid rgba(201,164,92,0.45);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    box-shadow: inset 0 3px 0 rgba(232,196,119,0.30), 0 -12px 46px rgba(0,0,0,0.42);
+  }
+  /* pink→cyan neon strip along the body's lower edge, over the keys */
+  .piano-hero .hero-piano-stage::after {
+    content: "";
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    top: calc(52% - 22px); height: 3px;
+    width: min(1440px, 94%);
+    background: linear-gradient(90deg, var(--pink), #a86ae0 48%, var(--cyan));
+    filter: drop-shadow(0 0 8px rgba(255,45,142,.7)) drop-shadow(0 0 14px rgba(12,196,217,.55));
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  /* key split — warm amber left under the pink neon, ice right under the cyan.
+     Whites are #piano children 1–21, blacks 22–36 (piano.js append order). */
+  .piano-hero .piano .key.white:nth-child(-n+10) {
+    background: linear-gradient(180deg, #FFFDF4 0%, #FFF3D6 55%, #ffd9a0 100%);
+    border-bottom-color: #ffb26b;
+    box-shadow: 0 6px 18px rgba(255,150,80,.35), 0 0 22px rgba(255,45,142,.16);
+  }
+  .piano-hero .piano .key.white:nth-child(n+11):nth-child(-n+21) {
+    background: linear-gradient(180deg, #FFFFFF 0%, #ECFBFF 55%, #bdeef7 100%);
+    border-bottom-color: #7ee0f0;
+    box-shadow: 0 6px 18px rgba(12,196,217,.30);
+  }
+  .piano-hero .piano .key.black {
+    background: linear-gradient(180deg, #241a52 0%, #14103a 70%, #1a1440 100%);
+    border-color: rgba(0,0,0,0.72);
+  }
+  .piano-hero .piano .key.black:nth-child(n+22):nth-child(-n+29) {
+    border-bottom-color: var(--pink);
+    box-shadow: 0 5px 14px rgba(255,45,142,.38);
+  }
+  .piano-hero .piano .key.black:nth-child(n+30) {
+    border-bottom-color: var(--cyan);
+    box-shadow: 0 5px 14px rgba(12,196,217,.38);
+  }
+  /* pressed flash keeps each key's candy color (must outrank the zone skins) */
+  .piano-hero .piano .key.white:nth-child(n).pressed {
+    background: linear-gradient(180deg, #FFFFFF 0%, var(--key-color) 70%);
+    box-shadow: 0 0 48px var(--key-color);
+  }
+  .piano-hero .piano .key.black:nth-child(n).pressed {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--key-color) 70%, white) 0%, var(--key-color) 100%);
+    box-shadow: 0 0 32px var(--key-color);
+  }
+  /* brass hardware: voice buttons + transport */
+  .piano-hero .voice-switcher {
+    background: rgba(201,164,92,0.08);
+    border-color: rgba(201,164,92,0.4);
+  }
+  .piano-hero .voice-btn { color: rgba(232,196,119,0.82); }
+  .piano-hero .voice-btn:hover { color: var(--cream); background: rgba(201,164,92,0.15); }
+  .piano-hero .voice-btn.active {
+    background: linear-gradient(180deg, #e8c477, #b98a44);
+    color: var(--ink);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.45);
+  }
+  .piano-hero #muteBtn, .piano-hero #replayBtn, .piano-hero #songPicker { border-color: rgba(201,164,92,0.45); }
+
+/* ── compact slug-page tuning: same instrument, header proportions ── */
+.piano-hero .ph-wrap { position: relative; z-index: 2; }
+.piano-hero .hero-piano-stage { height: 280px; margin-top: 26px; }
+.piano-hero .hero-piano-stage .piano { transform: translateX(-50%) rotateX(34deg) scale(0.78); }
+@media (max-width: 880px) {
+  .piano-hero .hero-piano-stage { height: 200px; }
+  .piano-hero .hero-piano-stage .piano { transform: translateX(-50%) rotateX(34deg) scale(0.56); }
+}
